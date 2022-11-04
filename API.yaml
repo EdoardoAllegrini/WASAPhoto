@@ -16,6 +16,14 @@ components:
     UsernameNotAvailable:
       description: The username is not available 
   parameters:
+    identifier:
+      name: identifier
+      description: The user identifier for the authorization
+      schema:
+        type: string
+        example: "abcdef012345"
+      in: path
+      required: true
     username:
       schema:
         type: string 
@@ -25,6 +33,13 @@ components:
         example: Maria 
       name: username
       in: path 
+      required: true
+    photo-id:
+      schema:
+        type: integer
+        example: 1
+      name: photo-id
+      in: path
       required: true
 
   schemas:
@@ -98,25 +113,21 @@ paths:
               application/json: 
                 schema: {$ref: "#/components/schemas/access-token"}
 
-  /session/{username}:
+  /session/{identifier}:
     parameters:
-      - $ref: "#/components/parameters/username"
+      - $ref: "#/components/parameters/identifier"
     put:
       tags: ["username"]
       summary: changes username
       description: |-
-        Takes the new username in the content and if it is available the new username is setted
-        and returns a new identifier in the content
+        Takes the new username, if it is available sets the new username
+        and returns his new identifier in the content
       operationId: setMyUsername
       requestBody:
-        description: new username and authentication token
+        description: new username
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                access-token: {$ref: "#/components/schemas/access-token"}
-                newusername: {$ref: "#/components/schemas/username"}
+            schema: {$ref: "#/components/schemas/username"}
       responses:
         "200":
           description: Username changed successfully
@@ -127,25 +138,20 @@ paths:
         "400": {$ref: "#/components/responses/BadRequest"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-
-  /session/{username}/media/:
+  /session/{identifier}/media/:
     parameters: 
-      - $ref: "#/components/parameters/username"
+      - $ref: "#/components/parameters/identifier"
     post:
-      tags: ["photos"]
-      summary: Upload a new photo on the profile
+      tags: ["media"]
+      summary: Upload a new photo to the profile
       description: |-
         Adds a photo to the stream of photos of the profile
       operationId: uploadPhoto
       requestBody:
-        description: photo and authentication token
+        description: photo file
         content:
           image/png: 
-            schema:
-              type: object
-              properties:
-                photo: {$ref: "#/components/schemas/photo"}
-                access-token: {$ref: "#/components/schemas/access-token"}
+            schema: {$ref: "#/components/schemas/photo"}
         required: true
 
       responses:
@@ -155,8 +161,140 @@ paths:
             application/json:
               schema: {$ref: "#/components/schemas/photo"}
 
-
         "400": {$ref: "#/components/responses/BadRequest"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-    
-        
+
+  /session/{identifier}/media/{photo-id}:
+    parameters:
+      - $ref: "#/components/parameters/identifier"
+      - $ref: "#/components/parameters/photo-id"
+    delete:
+      tags: ["media"]
+      summary: delete photo
+      description: If id-photo given is correct then deletes the photo
+      operationId: deletePhoto
+      responses:
+        "200":
+          description: Photo deleted successfully
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "500": {$ref: "#/components/responses/InternalServerError"} 
+  
+
+  /session/{identifier}/following/:
+    parameters:
+      - $ref: "#/components/parameters/identifier"
+    post:
+      tags: ["follow"]
+      summary: follow
+      description: |-
+        If the account relative to identifier doesn't follow username 
+        then starts follow, else if username given in input doesn't exist returns a 400 error
+      operationId: followUser
+      requestBody:
+        description: The username to follow
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/username"}
+      responses:
+        "201":
+          description: Followed successfully
+          content: 
+            application/json:
+              schema: {$ref: "#/components/schemas/username"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+    get:
+      tags: ["follow"]
+      summary: List of all following
+      description: Returns the list of users followed by account relative to identifier 
+      operationId: getFollowing
+      responses:
+        "200": 
+          description: List of following
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/username" }
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+          
+  /session/{identifier}/following/{username}:
+    parameters:
+      - $ref: "#/components/parameters/identifier"
+      - $ref: "#/components/parameters/username"
+    delete:
+      tags: ["unfollow"]
+      summary: unfollow
+      description: |-
+        Takes in input a username, if it doesn't exist returns a 400 error,
+        if the account relative to identifier follows username 
+        then unfollows
+      operationId: unfollowUser
+      responses:
+        "200":
+          description: Unfollowed successfully
+          content: 
+            application/json:
+              schema: {$ref: "#/components/schemas/username"}        
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+
+
+  /session/{identifier}/ban/:
+    parameters:
+      - $ref: "#/components/parameters/identifier"
+    post:
+      tags: ["ban"]
+      summary: ban a user
+      description: |-
+        Username given is banned, else if username given in input doesn't exist returns a 400 error
+      operationId: banUser
+      requestBody:
+        description: The username to ban
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/username"}
+      responses:
+        "201":
+          description: Banned successfully
+          content: 
+            application/json:
+              schema: {$ref: "#/components/schemas/username"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+    get:
+      tags: ["ban"]
+      summary: List of all users banned
+      description: Returns the list of users banned by account relative to identifier 
+      operationId: getBanned
+      responses:
+        "200": 
+          description: List of banned
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/username" }
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+
+  /session/{identifier}/ban/{username}:
+    parameters:
+      - $ref: "#/components/parameters/identifier"
+      - $ref: "#/components/parameters/username"
+    delete:
+      tags: ["unban"]
+      summary: unfollow
+      description: |-
+        Takes in input a username, if it doesn't exist returns a 400 error,
+        if username is banned by the account relative to the identifier then unbans 
+      operationId: unbanUser
+      responses:
+        "200":
+          description: Unbanned successfully
+          content: 
+            application/json:
+              schema: {$ref: "#/components/schemas/username"}        
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "500": {$ref: "#/components/responses/InternalServerError"}

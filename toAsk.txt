@@ -1,1 +1,2 @@
 Per follow/unfollow meglio put oppure post & delete ?
+Un utente puo vedere solo il profilo dei seguiti o di tutti, e per i commenti/likes?

@@ -82,7 +82,7 @@ components:
           example: "abcdef012345"
     photo:
       title: photo
-      description: An object containing the photo file, its unique id and a caption
+      description: An object containing the photo file, its unique id, user that posted and a caption
       type: object
       properties:
         id:
@@ -90,6 +90,7 @@ components:
           type: integer
           example: 1
           readOnly: true
+        username: {$ref: "#/components/schemas/username"}
         image:
           description: The image file
           type: string
@@ -108,6 +109,19 @@ components:
         followed: 
           type: array
           items: {$ref: "#/components/schemas/username"}
+    article:
+      title: a post of the stream
+      description: |- 
+        A photo with the user that posted it, likes and comments.
+      properties:
+        photo: {$ref: "#/components/schemas/photo"}
+        user: {$ref: "#/components/schemas/username"}
+        likes: 
+          type: array
+          items: {$ref: "#/components/schemas/username"}
+        comments: 
+          type: array
+          items: {$ref: "#/components/schemas/comment"}
     profile:
       title: profile
       description: An object describing user's profile
@@ -199,6 +213,24 @@ paths:
         "400": {$ref: "#/components/responses/BadRequest"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
+  /stream/:
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["stream"]
+      summary: My stream
+      description: |-
+        Returns the stream of the user relative to the bearerAuth.
+        The stream is made by a list of photos with username that posted it, likes and comments.
+      operationId: getMyStream
+      responses:
+        "200":
+          description: Stream returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: "#/components/schemas/article"}
   /{username}/:
 
     get:
@@ -399,7 +431,7 @@ paths:
       summary: follow a user
       description: |-
         If the account relative to bearerAuth doesn't follow username given in body request
-        then starts follow, else if username given in input doesn't exist returns a 400 error
+        then starts follow, else if username given in input doesn't exist returns an error
       operationId: followUser
       requestBody:
         description: The username to follow
@@ -415,21 +447,23 @@ paths:
         "400": {$ref: "#/components/responses/BadRequest"}
         '401': {$ref: '#/components/responses/UnauthorizedError'}
         "500": {$ref: "#/components/responses/InternalServerError"}
-    # get:
-    #   tags: ["follow"]
-    #   summary: List of all following
-    #   description: Returns the list of users followed by account relative to identifier 
-    #   operationId: getFollowing
-    #   responses:
-    #     "200": 
-    #       description: List of following
-    #       content:
-    #         application/json:
-    #           schema:
-    #             type: array
-    #             items: { $ref: "#/components/schemas/username" }
-    #     "400": {$ref: "#/components/responses/BadRequest"}
-    #     "500": {$ref: "#/components/responses/InternalServerError"}
+    
+    get:
+      tags: ["follow"]
+      summary: List of all following
+      description: Returns the list of users followed by account relative to bearerAuth 
+      operationId: getFollowing
+      responses:
+        "200": 
+          description: List of following
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/username" }
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: "#/components/responses/UnauthorizedError"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
           
   /follow/{username}:
     parameters:
@@ -437,10 +471,10 @@ paths:
     delete:
       security:
         - bearerAuth: []
-      tags: ["unfollow"]
+      tags: ["follow"]
       summary: unfollow
       description: |-
-        Takes in path a username, if it doesn't exist returns a 400 error,
+        Takes in path a username, if it doesn't exist returns an error,
         if the account relative to bearerAuth token follows username 
         then unfollows
       operationId: unfollowUser
@@ -461,7 +495,8 @@ paths:
       tags: ["ban"]
       summary: ban a user
       description: |-
-        User relative to bearerAuth given bans username given in input, if it doesn't exist returns a 400 error
+        User relative to bearerAuth given bans username given in input, 
+        if it doesn't exist returns an error
       operationId: banUser
       requestBody:
         description: The username to ban
@@ -477,30 +512,31 @@ paths:
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/UnauthorizedError"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-    # get:
-    #   tags: ["ban"]
-    #   summary: List of all users banned
-    #   description: Returns the list of users banned by account relative to identifier 
-    #   operationId: getBanned
-    #   responses:
-    #     "200": 
-    #       description: List of banned
-    #       content:
-    #         application/json:
-    #           schema:
-    #             type: array
-    #             items: { $ref: "#/components/schemas/username" }
-    #     "400": {$ref: "#/components/responses/BadRequest"}
-    #     "500": {$ref: "#/components/responses/InternalServerError"}
+    get:
+      tags: ["ban"]
+      summary: List of all users banned
+      description: Returns the list of users banned by account relative to bearerAuth 
+      operationId: getBanned
+      responses:
+        "200": 
+          description: List of banned
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/username" }
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: "#/components/responses/UnauthorizedError"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
 
   /ban/{username}:
     parameters:
       - $ref: "#/components/parameters/username"
     delete:
-      tags: ["unban"]
+      tags: ["ban"]
       summary: unban
       description: |-
-        Takes in path a username, if it doesn't exist returns a 400 error,
+        Takes in path a username, if it doesn't exist returns an error,
         if username is banned by the account relative to the bearerAuth then unbans 
       operationId: unbanUser
       responses:

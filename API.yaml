@@ -8,8 +8,8 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
-  responses:
+      in: header
+ responses:
     BadRequest: 
       description: |-
         The request was not compliant with the documentation

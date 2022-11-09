@@ -1,15 +1,19 @@
 openapi: 3.0.3 
 info:
   title: WASAPhoto backend REST APIs
-  description: WASAPhoto APIs
+  description: |-
+    Keep in touch with your friends by sharing photos of special moments, 
+    thanks to WASAPhoto! You can upload your photos directly from your PC, 
+    and they will be visible to everyone following you.
   version: "0.0.1"
 components:
   securitySchemes:
     bearerAuth:
+      description: API authentication to authorize requests
       type: http
       scheme: bearer
-      in: header
- responses:
+
+  responses:
     BadRequest: 
       description: |-
         The request was not compliant with the documentation
@@ -26,18 +30,11 @@ components:
       description: Access token is missing or invalid
 
   parameters:
-    identifier:
-      name: identifier
-      description: The user identifier for the authorization
-      schema:
-        type: string
-        example: "abcdef012345"
-      in: path
-      required: true
     username:
       schema:
         type: string 
-        pattern: 'ˆ.*?$' 
+        pattern: |-
+          ^(?=.{3,16}$)[a-zA-Z0-9._]+$
         minLength: 3 
         maxLength: 16
         example: Maria 
@@ -61,12 +58,12 @@ components:
 
   schemas:
     posinteger:
-      title: positive integer
+      title: Positive integer
       type: integer
       minimum: 0
-      example: 200
+      example: 1
     username:
-      title: username
+      title: Username
       type: string
       pattern: 'ˆ.*?$' 
       minLength: 3 
@@ -81,7 +78,7 @@ components:
           type: string
           example: "abcdef012345"
     photo:
-      title: photo
+      title: Photo
       description: An object containing the photo file, its unique id, user that posted and a caption
       type: object
       properties:
@@ -90,17 +87,14 @@ components:
           type: integer
           example: 1
           readOnly: true
+        timestamp: {$ref: "#/components/schemas/timestamp"}
         username: {$ref: "#/components/schemas/username"}
-        image:
-          description: The image file
-          type: string
-          format: binary
         caption:
           description: The image's caption
           type: string
           example: "Visiting CERN"
     profileStats:
-      title: stats
+      title: Profile Statistics
       properties:
         n_photos_uploaded: {$ref: "#/components/schemas/posinteger"}
         followers:
@@ -110,7 +104,7 @@ components:
           type: array
           items: {$ref: "#/components/schemas/username"}
     article:
-      title: a post of the stream
+      title: Post of the stream
       description: |- 
         A photo with the user that posted it, likes and comments.
       properties:
@@ -123,7 +117,7 @@ components:
           type: array
           items: {$ref: "#/components/schemas/comment"}
     profile:
-      title: profile
+      title: Profile
       description: An object describing user's profile
       type: object
       properties:
@@ -133,7 +127,7 @@ components:
           items: {$ref: "#/components/schemas/photo"}
         stats: {$ref: "#/components/schemas/profileStats"}
     comment:
-      title: comment
+      title: Comment
       description: An object with username, text and timestamp of publication of the comment
       type: object
       properties:
@@ -142,18 +136,14 @@ components:
         timestamp: {$ref: "#/components/schemas/timestamp"}
         id: {$ref: "#/components/schemas/posinteger"}
     timestamp:
-      title: timestamp
+      title: Timestamp
       type: string
       format: date-time
       example: "2022-05-23T08:00:00"
+      readOnly: true
     commentText:
       type: string
       maxLength: 250
-
-
-security:
-  - bearerAuth: []
-
 
 
 paths:
@@ -174,12 +164,7 @@ paths:
             schema: 
               type: object 
               properties:
-                name:
-                  type: string 
-                  example: Maria 
-                  pattern: 'ˆ.*?$' 
-                  minLength: 3 
-                  maxLength: 16
+                name: {$ref: "#/components/schemas/username"}
         required: true 
       responses:
         '201':
@@ -187,31 +172,8 @@ paths:
           content:
               application/json: 
                 schema: {$ref: "#/components/schemas/access-token"}
+                
 
-    put:
-      security:
-        - bearerAuth: []
-      tags: ["username"]
-      summary: changes username
-      description: |-
-        Takes the new username, if it is available sets the new username
-        and returns his new identifier in the content
-      operationId: setMyUsername
-      requestBody:
-        description: new username
-        content:
-          application/json:
-            schema: {$ref: "#/components/schemas/username"}
-      responses:
-        "200":
-          description: Username changed successfully
-          content: 
-            application/json:
-              schema: {$ref: "#/components/schemas/access-token"}
-        '401': {$ref: '#/components/responses/UnauthorizedError'}
-        "409": {$ref: "#/components/responses/UsernameNotAvailable"}
-        "400": {$ref: "#/components/responses/BadRequest"}
-        "500": {$ref: "#/components/responses/InternalServerError"}
 
   /stream/:
     get:
@@ -232,6 +194,36 @@ paths:
                 type: array
                 items: {$ref: "#/components/schemas/article"}
   /{username}/:
+    put:
+      parameters:
+        - $ref: "#/components/parameters/username"
+      security:
+        - bearerAuth: []
+      tags: ["username"]
+      summary: Changes username
+      description: |-
+        If the username in path is relative to the user authenticated, 
+        changes the username to the given one.
+      operationId: setMyUsername
+      requestBody:
+        description: new username
+        content:
+          application/json:
+            schema:
+              type: object 
+              properties:
+                name: {$ref: "#/components/schemas/username"}
+        required: true
+      responses:
+        "200":
+          description: Username changed successfully
+          content: 
+            application/json:
+              schema: {$ref: "#/components/schemas/access-token"}
+        '401': {$ref: '#/components/responses/UnauthorizedError'}
+        "409": {$ref: "#/components/responses/UsernameNotAvailable"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
 
     get:
       parameters: 
@@ -259,15 +251,21 @@ paths:
       security:
         - bearerAuth: []
       tags: ["media"]
-      summary: Upload a new photo to the profile relative to the token given as bearerAuth
+      summary: Upload a new photo
       description: |-
-        Adds a photo to the profile's stream of photos
+        Adds a photo to the profile's stream of photos (profile relative to the token given as bearerAuth)
       operationId: uploadPhoto
       requestBody:
-        description: photo file and authentication token
+        description: Photo details
         content:
-          application/json: 
-            schema: {$ref: "#/components/schemas/photo"}
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                photoInfo: {$ref: "#/components/schemas/photo"}
+                photoFile:
+                  type: string
+                  format: binary
         required: true
 
       responses:
@@ -299,6 +297,8 @@ paths:
         "500": {$ref: "#/components/responses/InternalServerError"} 
   
   /media/{photo-id}/likes:
+    parameters:
+      - $ref: "#/components/parameters/photo-id"
     get:
       security:
         - bearerAuth: []
@@ -385,14 +385,20 @@ paths:
         description: The text of the comment (max 250 chars)
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/commentText"}
+            schema: 
+              type: object
+              properties:
+                text: {$ref: "#/components/schemas/commentText"}
         required: true
       responses:
         "200":
           description: Commented successfully
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/comment"}
+              schema: 
+                type: object
+                properties:
+                    comment: {$ref: "#/components/schemas/comment"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
@@ -417,7 +423,10 @@ paths:
           description: Comment removed successfully from the photo, returned the photo 
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/photo"}
+              schema: 
+                type: object
+                properties:
+                  photo: {$ref: "#/components/schemas/photo"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
@@ -437,13 +446,19 @@ paths:
         description: The username to follow
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/username"}
+            schema: 
+              type: object
+              properties:
+                user: {$ref: "#/components/schemas/username"}
       responses:
         "201":
           description: Followed successfully
           content: 
             application/json:
-              schema: {$ref: "#/components/schemas/username"}
+              schema:
+                type: object
+                properties:
+                  user: {$ref: "#/components/schemas/username"}
         "400": {$ref: "#/components/responses/BadRequest"}
         '401': {$ref: '#/components/responses/UnauthorizedError'}
         "500": {$ref: "#/components/responses/InternalServerError"}
@@ -483,7 +498,10 @@ paths:
           description: Unfollowed successfully
           content: 
             application/json:
-              schema: {$ref: "#/components/schemas/username"}        
+              schema:
+                type: object
+                properties:
+                  user: {$ref: "#/components/schemas/username"}       
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/UnauthorizedError"}
         "500": {$ref: "#/components/responses/InternalServerError"}
@@ -502,13 +520,19 @@ paths:
         description: The username to ban
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/username"}
+            schema:
+              type: object
+              properties:
+                user: {$ref: "#/components/schemas/username"}
       responses:
         "201":
           description: Banned successfully
           content: 
             application/json:
-              schema: {$ref: "#/components/schemas/username"}
+              schema:
+                type: object
+                properties:
+                  user: {$ref: "#/components/schemas/username"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/UnauthorizedError"}
         "500": {$ref: "#/components/responses/InternalServerError"}
@@ -544,7 +568,10 @@ paths:
           description: Unbanned successfully
           content: 
             application/json:
-              schema: {$ref: "#/components/schemas/username"}        
+              schema:
+                type: object
+                properties:
+                  user: {$ref: "#/components/schemas/username"}       
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/UnauthorizedError"}
         "500": {$ref: "#/components/responses/InternalServerError"}

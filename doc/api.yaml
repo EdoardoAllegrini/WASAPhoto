@@ -23,7 +23,7 @@ components:
         The server encountered an internal error.
         Further info in server logs.
     NotFound:
-          description: Not Found, user with such ID does not exist.
+          description: Page not found.
     UsernameNotAvailable:
       description: The username is not available
     UnauthorizedError:
@@ -65,7 +65,8 @@ components:
     username:
       title: Username
       type: string
-      pattern: 'ˆ.*?$' 
+      pattern: |-
+        ^(?=.{3,16}$)[a-zA-Z0-9._]+$
       minLength: 3 
       maxLength: 16
       example: Maria 
@@ -79,7 +80,9 @@ components:
           example: "abcdef012345"
     photo:
       title: Photo
-      description: An object containing the photo file, its unique id, user that posted and a caption
+      description: |-
+        An object containing the photo file, its unique id, user that posted a caption
+        and the timestamp 
       type: object
       properties:
         id:
@@ -87,16 +90,20 @@ components:
           type: integer
           example: 1
           readOnly: true
+        photo-file: {$ref: "#/components/schemas/photoFile"}
         timestamp: {$ref: "#/components/schemas/timestamp"}
         username: {$ref: "#/components/schemas/username"}
-        caption:
-          description: The image's caption
-          type: string
-          example: "Visiting CERN"
+        caption: {$ref: "#/components/schemas/photoCaption"}
+    photoCaption:
+      description: The image's caption
+      type: string
+      example: "Visiting CERN"
+    photoFile:
+      type: string
+      format: byte
     profileStats:
       title: Profile Statistics
       properties:
-        n_photos_uploaded: {$ref: "#/components/schemas/posinteger"}
         followers:
           type: array
           items: {$ref: "#/components/schemas/username"}
@@ -104,12 +111,11 @@ components:
           type: array
           items: {$ref: "#/components/schemas/username"}
     article:
-      title: Post of the stream
+      title: A post of the stream
       description: |- 
         A photo with the user that posted it, likes and comments.
       properties:
         photo: {$ref: "#/components/schemas/photo"}
-        user: {$ref: "#/components/schemas/username"}
         likes: 
           type: array
           items: {$ref: "#/components/schemas/username"}
@@ -121,10 +127,13 @@ components:
       description: An object describing user's profile
       type: object
       properties:
-        name: {$ref: "#/components/schemas/username"}
+        profile-name: {$ref: "#/components/schemas/username"}
         photos:
           type: array
           items: {$ref: "#/components/schemas/photo"}
+        n_photos: 
+          type: integer
+          minimum: 0
         stats: {$ref: "#/components/schemas/profileStats"}
     comment:
       title: Comment
@@ -144,6 +153,7 @@ components:
     commentText:
       type: string
       maxLength: 250
+      example: Nice photo!
 
 
 paths:
@@ -172,8 +182,9 @@ paths:
           content:
               application/json: 
                 schema: {$ref: "#/components/schemas/access-token"}
-                
-
+        "400": {$ref: "#/components/responses/BadRequest"}
+        '404': {$ref: '#/components/responses/NotFound'}
+        "500": {$ref: "#/components/responses/InternalServerError"}
 
   /stream/:
     get:
@@ -182,8 +193,8 @@ paths:
       tags: ["stream"]
       summary: My stream
       description: |-
-        Returns the stream of the user relative to the bearerAuth.
-        The stream is made by a list of photos with username that posted it, likes and comments.
+        Returns the stream of the user authenticated.
+        The stream is made by a list of articles with photo, username that posted it likes and comments.
       operationId: getMyStream
       responses:
         "200":
@@ -193,6 +204,11 @@ paths:
               schema:
                 type: array
                 items: {$ref: "#/components/schemas/article"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        '401': {$ref: '#/components/responses/UnauthorizedError'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+
   /{username}/:
     put:
       parameters:
@@ -202,8 +218,8 @@ paths:
       tags: ["username"]
       summary: Changes username
       description: |-
-        If the username in path is relative to the user authenticated, 
-        changes the username to the given one.
+        If the user in path is relative to the user authenticated 
+        then changes his username to the one given in request body.
       operationId: setMyUsername
       requestBody:
         description: new username
@@ -220,9 +236,10 @@ paths:
           content: 
             application/json:
               schema: {$ref: "#/components/schemas/access-token"}
-        '401': {$ref: '#/components/responses/UnauthorizedError'}
-        "409": {$ref: "#/components/responses/UsernameNotAvailable"}
         "400": {$ref: "#/components/responses/BadRequest"}
+        '401': {$ref: '#/components/responses/UnauthorizedError'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        "409": {$ref: "#/components/responses/UsernameNotAvailable"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
     get:
@@ -234,6 +251,8 @@ paths:
       summary: Returns the profile page of username given in path
       description: |-
         Takes in path a username and returns in content his personal profile page
+        with the user's photos (in reverse chronological order), 
+        how many photos have been uploaded, and the user's followers and following.
       operationId: getUserProfile
       responses:
         "200":
@@ -253,7 +272,7 @@ paths:
       tags: ["media"]
       summary: Upload a new photo
       description: |-
-        Adds a photo to the profile's stream of photos (profile relative to the token given as bearerAuth)
+        Adds a photo to the stream of profile authenticated
       operationId: uploadPhoto
       requestBody:
         description: Photo details
@@ -262,10 +281,8 @@ paths:
             schema:
               type: object
               properties:
-                photoInfo: {$ref: "#/components/schemas/photo"}
-                photoFile:
-                  type: string
-                  format: binary
+                photoCaption: {$ref: "#/components/schemas/photoCaption"}
+                photoFile: {$ref: "#/components/schemas/photoFile"}
         required: true
 
       responses:
@@ -286,7 +303,7 @@ paths:
         - bearerAuth: []
       tags: ["media"]
       summary: delete photo
-      description: If id-photo given is correct then deletes the photo
+      description: If id-photo given is correct then deletes the photo from the profile of user authenticated
       operationId: deletePhoto
       responses:
         "200":
@@ -314,39 +331,46 @@ paths:
                 type: array
                 items: {$ref: "#/components/schemas/username"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "404": {$ref: "#/components/responses/NotFound"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
+
     post:
       security:
         - bearerAuth: []
       tags: ["likes"]
       summary: like the photo
       description: |- 
-        The user, relative to the bearerAuth given, sets a like to the photo in path 
+        The user authenticated sets a like to the photo in path 
       operationId: likePhoto
       responses:
         "200":
           description: Liked successfully
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/photo"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "404": {$ref: "#/components/responses/NotFound"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
+
     delete:
       security:
         - bearerAuth: []
       tags: ["likes"]
       summary: unlike the photo
       description: |-
-        The user, relative to the bearerAuth given, if liked the photo in path
-        removes it
+        The user authenticated if liked the photo in path removes the like
       operationId: unlikePhoto
       responses:
         "200":
           description: Unliked successfully
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/photo"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "404": {$ref: "#/components/responses/NotFound"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
   /media/{photo-id}/comments:
@@ -368,8 +392,8 @@ paths:
                 type: array
                 items: {$ref: "#/components/schemas/comment"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "404": {$ref: "#/components/responses/NotFound"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
     
     post:
@@ -378,8 +402,8 @@ paths:
       tags: ["comments"]
       summary: comment the photo
       description: |- 
-        The user, relative to the bearerAuth given, posts comments the photo in path with 
-        text given in content. Returns the comment with his id in content
+        The user authenticated posts a comment to the photo in path with 
+        text given in content. Returns the comment object
       operationId: commentPhoto
       requestBody:
         description: The text of the comment (max 250 chars)
@@ -400,8 +424,8 @@ paths:
                 properties:
                     comment: {$ref: "#/components/schemas/comment"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "404": {$ref: "#/components/responses/NotFound"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
   /media/{photo-id}/comments/{comment-id}/:
@@ -415,8 +439,8 @@ paths:
       tags: ["comments"]
       summary: remove comment
       description: |-
-        If the user relative to bearerAuth has posted the photo with photo-id then 
-        the comment with comment-is is removed
+        If the user authenticated has posted the photo, 
+        comment relative to the one given in path is removed
       operationId: removeComment
       responses:
         "200":
@@ -428,8 +452,8 @@ paths:
                 properties:
                   photo: {$ref: "#/components/schemas/photo"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "404": {$ref: "#/components/responses/NotFound"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
   /follow/:
@@ -439,8 +463,8 @@ paths:
       tags: ["follow"]
       summary: follow a user
       description: |-
-        If the account relative to bearerAuth doesn't follow username given in body request
-        then starts follow, else if username given in input doesn't exist returns an error
+        If the account authenticated doesn't follow existent user given in body request
+        then starts follow
       operationId: followUser
       requestBody:
         description: The username to follow
@@ -460,13 +484,14 @@ paths:
                 properties:
                   user: {$ref: "#/components/schemas/username"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        '401': {$ref: '#/components/responses/UnauthorizedError'}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
     
     get:
       tags: ["follow"]
       summary: List of all following
-      description: Returns the list of users followed by account relative to bearerAuth 
+      description: Returns the list of users followed by account authenticated
       operationId: getFollowing
       responses:
         "200": 
@@ -477,7 +502,8 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/username" }
         "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: "#/components/responses/UnauthorizedError"}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
           
   /follow/{username}:
@@ -490,8 +516,7 @@ paths:
       summary: unfollow
       description: |-
         Takes in path a username, if it doesn't exist returns an error,
-        if the account relative to bearerAuth token follows username 
-        then unfollows
+        if the account authenticated follows username then unfollows
       operationId: unfollowUser
       responses:
         "200":
@@ -503,7 +528,8 @@ paths:
                 properties:
                   user: {$ref: "#/components/schemas/username"}       
         "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: "#/components/responses/UnauthorizedError"}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
   /ban/:
@@ -513,7 +539,7 @@ paths:
       tags: ["ban"]
       summary: ban a user
       description: |-
-        User relative to bearerAuth given bans username given in input, 
+        User authenticated bans username given in input, 
         if it doesn't exist returns an error
       operationId: banUser
       requestBody:
@@ -534,12 +560,13 @@ paths:
                 properties:
                   user: {$ref: "#/components/schemas/username"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: "#/components/responses/UnauthorizedError"}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
     get:
       tags: ["ban"]
       summary: List of all users banned
-      description: Returns the list of users banned by account relative to bearerAuth 
+      description: Returns the list of users banned by account authenticated 
       operationId: getBanned
       responses:
         "200": 
@@ -550,7 +577,8 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/username" }
         "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: "#/components/responses/UnauthorizedError"}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
   /ban/{username}:
@@ -561,7 +589,7 @@ paths:
       summary: unban
       description: |-
         Takes in path a username, if it doesn't exist returns an error,
-        if username is banned by the account relative to the bearerAuth then unbans 
+        if username is banned by the account authenticated then is unbanned
       operationId: unbanUser
       responses:
         "200":
@@ -573,5 +601,6 @@ paths:
                 properties:
                   user: {$ref: "#/components/schemas/username"}       
         "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: "#/components/responses/UnauthorizedError"}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}

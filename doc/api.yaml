@@ -25,9 +25,9 @@ components:
     NotFound:
           description: Page not found.
     UsernameNotAvailable:
-      description: The username is not available
+      description: The username is not available.
     UnauthorizedError:
-      description: Access token is missing or invalid
+      description: Access token is missing or invalid.
 
   parameters:
     username:
@@ -72,7 +72,7 @@ components:
       example: Maria 
     access-token:
       title: Authorization-token
-      description: The user identifier for the authorization
+      description: The user identifier for the authorization.
       type: object
       properties:
         identifier:
@@ -82,11 +82,11 @@ components:
       title: Photo
       description: |-
         An object containing the photo file, its unique id, user that posted a caption
-        and the timestamp 
+        and the timestamp.
       type: object
       properties:
         id:
-          description: Unique image identifier
+          description: Unique image identifier.
           type: integer
           example: 1
           readOnly: true
@@ -95,19 +95,19 @@ components:
         username: {$ref: "#/components/schemas/username"}
         caption: {$ref: "#/components/schemas/photoCaption"}
     photoCaption:
-      description: The image's caption
+      description: The image's caption.
       type: string
       example: "Visiting CERN"
     photoFile:
       type: string
-      format: byte
+      format: base64
     profileStats:
       title: Profile Statistics
       properties:
         followers:
           type: array
           items: {$ref: "#/components/schemas/username"}
-        followed: 
+        following: 
           type: array
           items: {$ref: "#/components/schemas/username"}
     article:
@@ -124,7 +124,7 @@ components:
           items: {$ref: "#/components/schemas/comment"}
     profile:
       title: Profile
-      description: An object describing user's profile
+      description: An object describing user's profile.
       type: object
       properties:
         profile-name: {$ref: "#/components/schemas/username"}
@@ -137,13 +137,17 @@ components:
         stats: {$ref: "#/components/schemas/profileStats"}
     comment:
       title: Comment
-      description: An object with username, text and timestamp of publication of the comment
+      description: An object with username, text and timestamp of publication of the comment.
       type: object
       properties:
         user: {$ref: "#/components/schemas/username"}
         text: {$ref: "#/components/schemas/commentText"}
         timestamp: {$ref: "#/components/schemas/timestamp"}
-        id: {$ref: "#/components/schemas/posinteger"}
+        id:
+          description: Unique comment identifier.
+          type: integer
+          example: 1
+          readOnly: true
     timestamp:
       title: Timestamp
       type: string
@@ -168,7 +172,7 @@ paths:
           If the user exists, the user identifier is returned.
       operationId: doLogin 
       requestBody:
-        description: User details 
+        description: User details.
         content:
           application/json: 
             schema: 
@@ -178,7 +182,7 @@ paths:
         required: true 
       responses:
         '201':
-          description: User log-in action successful 
+          description: User log-in action successful.
           content:
               application/json: 
                 schema: {$ref: "#/components/schemas/access-token"}
@@ -186,28 +190,7 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /stream/:
-    get:
-      security:
-        - bearerAuth: []
-      tags: ["stream"]
-      summary: My stream
-      description: |-
-        Returns the stream of the user authenticated.
-        The stream is made by a list of articles with photo, username that posted it likes and comments.
-      operationId: getMyStream
-      responses:
-        "200":
-          description: Stream returned successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items: {$ref: "#/components/schemas/article"}
-        "400": {$ref: "#/components/responses/BadRequest"}
-        '401': {$ref: '#/components/responses/UnauthorizedError'}
-        '404': {$ref: '#/components/responses/NotFound'}
-        "500": {$ref: "#/components/responses/InternalServerError"}
+
 
   /{username}/:
     put:
@@ -216,7 +199,7 @@ paths:
       security:
         - bearerAuth: []
       tags: ["username"]
-      summary: Changes username
+      summary: Changes username.
       description: |-
         If the user in path is relative to the user authenticated 
         then changes his username to the one given in request body.
@@ -232,7 +215,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Username changed successfully
+          description: Username changed successfully.
           content: 
             application/json:
               schema: {$ref: "#/components/schemas/access-token"}
@@ -248,15 +231,15 @@ paths:
       security:
         - bearerAuth: []
       tags: ["profile"]
-      summary: Returns the profile page of username given in path
+      summary: Returns the profile page of username given in path.
       description: |-
-        Takes in path a username and returns in content his personal profile page
+        Takes in path a username and if exists returns in content his personal profile page
         with the user's photos (in reverse chronological order), 
-        how many photos have been uploaded, and the user's followers and following.
+        how many photos have been uploaded, the user's followers and following.
       operationId: getUserProfile
       responses:
         "200":
-          description: Profile is returned correctly
+          description: Profile is returned correctly.
           content:
             application/json:
               schema: {$ref: "#/components/schemas/profile"}
@@ -266,13 +249,15 @@ paths:
         "500": {$ref: "#/components/responses/InternalServerError"}
               
   /media/: 
+    parameters:
+      - $ref: "#/components/parameters/username"
     post:
       security:
         - bearerAuth: []
       tags: ["media"]
       summary: Upload a new photo
       description: |-
-        Adds a photo to the stream of profile authenticated
+        Adds a photo to the profile authenticated.
       operationId: uploadPhoto
       requestBody:
         description: Photo details
@@ -287,7 +272,7 @@ paths:
 
       responses:
         "201":
-          description: photo uploaded successfully
+          description: photo uploaded successfully.
           content:
             application/json:
               schema: {$ref: "#/components/schemas/photo"}
@@ -298,33 +283,37 @@ paths:
   /media/{photo-id}:
     parameters:
       - $ref: "#/components/parameters/photo-id"
+      - $ref: "#/components/parameters/username"
     delete:
       security:
         - bearerAuth: []
       tags: ["media"]
       summary: delete photo
-      description: If id-photo given is correct then deletes the photo from the profile of user authenticated
+      description: If id-photo given is correct then deletes the photo from the profile of user authenticated.
       operationId: deletePhoto
       responses:
-        "200":
+        "204":
           description: Photo deleted successfully
         "400": {$ref: "#/components/responses/BadRequest"}
         '401': {$ref: '#/components/responses/UnauthorizedError'}
         '404': {$ref: '#/components/responses/NotFound'}
         "500": {$ref: "#/components/responses/InternalServerError"} 
   
-  /media/{photo-id}/likes:
+  /{username}/media/{photo-id}/likes:
     parameters:
       - $ref: "#/components/parameters/photo-id"
+      - $ref: "#/components/parameters/username"
     get:
       security:
         - bearerAuth: []
       tags: ["likes"]
-      summary: Returns a list of the users that like the photo in path
+      summary: Returns likes
+      description: Returns a list of the users that like the photo with photo-id given, 
+        posted by username in path.
       operationId: getLikes
       responses:
         "200":
-          description: List is returned successfully
+          description: List is returned successfully.
           content:
             application/json:
               schema:
@@ -339,13 +328,14 @@ paths:
       security:
         - bearerAuth: []
       tags: ["likes"]
-      summary: like the photo
+      summary: Likes the photo
       description: |- 
-        The user authenticated sets a like to the photo in path 
+        The user authenticated sets a like to the photo with photo-id given, 
+        posted by username in path.
       operationId: likePhoto
       responses:
         "200":
-          description: Liked successfully
+          description: Liked successfully.
           content:
             application/json:
               schema: {$ref: "#/components/schemas/photo"}
@@ -358,34 +348,34 @@ paths:
       security:
         - bearerAuth: []
       tags: ["likes"]
-      summary: unlike the photo
+      summary: Unlikes the photo
       description: |-
-        The user authenticated if liked the photo in path removes the like
+        The user authenticated if liked the photo with photo-id given, 
+        posted by username in path, removes the like.
       operationId: unlikePhoto
       responses:
         "200":
-          description: Unliked successfully
-          content:
-            application/json:
-              schema: {$ref: "#/components/schemas/photo"}
+          description: Unliked successfully.
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /media/{photo-id}/comments:
+  /{username}/media/{photo-id}/comments:
     parameters:
       - $ref: "#/components/parameters/photo-id"
-    
+      - $ref: "#/components/parameters/username"
     get:
       tags: ["comments"]
       security:
         - bearerAuth: []
-      summary: Returns a list of comments objects relative to the photo in path
+      summary: Returns comments
+      description: Returns a list of comments objects relative to the photo with photo-id given, 
+        posted by username in path.
       operationId: getComments
       responses:
         "200":
-          description: List is returned successfully
+          description: List is returned successfully.
           content:
             application/json:
               schema:
@@ -400,10 +390,10 @@ paths:
       security:
         - bearerAuth: []
       tags: ["comments"]
-      summary: comment the photo
+      summary: Comments the photo
       description: |- 
         The user authenticated posts a comment to the photo in path with 
-        text given in content. Returns the comment object
+        text given in content. Returns the comment object.
       operationId: commentPhoto
       requestBody:
         description: The text of the comment (max 250 chars)
@@ -416,7 +406,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Commented successfully
+          description: Commented successfully.
           content:
             application/json:
               schema: 
@@ -428,29 +418,23 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /media/{photo-id}/comments/{comment-id}/:
+  /{username}/media/{photo-id}/comments/{comment-id}/:
     parameters:
       - $ref: "#/components/parameters/photo-id"
       - $ref: "#/components/parameters/comment-id"
-    
+      - $ref: "#/components/parameters/username"
     delete:
       security:
         - bearerAuth: []
       tags: ["comments"]
-      summary: remove comment
+      summary: Removes comment
       description: |-
         If the user authenticated has posted the photo, 
-        comment relative to the one given in path is removed
+        comment relative to the one given in path is removed.
       operationId: removeComment
       responses:
         "200":
-          description: Comment removed successfully from the photo, returned the photo 
-          content:
-            application/json:
-              schema: 
-                type: object
-                properties:
-                  photo: {$ref: "#/components/schemas/photo"}
+          description: Comment removed successfully from the photo
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
@@ -461,10 +445,10 @@ paths:
       security:
         - bearerAuth: []
       tags: ["follow"]
-      summary: follow a user
+      summary: Follows a user
       description: |-
         If the account authenticated doesn't follow existent user given in body request
-        then starts follow
+        then starts follow.
       operationId: followUser
       requestBody:
         description: The username to follow
@@ -490,12 +474,12 @@ paths:
     
     get:
       tags: ["follow"]
-      summary: List of all following
-      description: Returns the list of users followed by account authenticated
+      summary: List of all following users
+      description: Returns the list of users followed by account authenticated.
       operationId: getFollowing
       responses:
         "200": 
-          description: List of following
+          description: List of following.
           content:
             application/json:
               schema:
@@ -516,17 +500,11 @@ paths:
       summary: unfollow
       description: |-
         Takes in path a username, if it doesn't exist returns an error,
-        if the account authenticated follows username then unfollows
+        if the account authenticated follows username then unfollows.
       operationId: unfollowUser
       responses:
         "200":
-          description: Unfollowed successfully
-          content: 
-            application/json:
-              schema:
-                type: object
-                properties:
-                  user: {$ref: "#/components/schemas/username"}       
+          description: Unfollowed successfully      
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
@@ -540,7 +518,7 @@ paths:
       summary: ban a user
       description: |-
         User authenticated bans username given in input, 
-        if it doesn't exist returns an error
+        if it doesn't exist returns an error.
       operationId: banUser
       requestBody:
         description: The username to ban
@@ -566,7 +544,7 @@ paths:
     get:
       tags: ["ban"]
       summary: List of all users banned
-      description: Returns the list of users banned by account authenticated 
+      description: Returns the list of users banned by account authenticated.
       operationId: getBanned
       responses:
         "200": 
@@ -589,18 +567,35 @@ paths:
       summary: unban
       description: |-
         Takes in path a username, if it doesn't exist returns an error,
-        if username is banned by the account authenticated then is unbanned
+        if username is banned by the account authenticated then is unbanned.
       operationId: unbanUser
       responses:
         "200":
-          description: Unbanned successfully
-          content: 
-            application/json:
-              schema:
-                type: object
-                properties:
-                  user: {$ref: "#/components/schemas/username"}       
+          description: Unbanned successfully     
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+
+  /stream/:
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["stream"]
+      summary: My stream
+      description: |-
+        Returns the stream of the user authenticated.
+        The stream is made by a list of articles with photo, username that posted it likes and comments.
+      operationId: getMyStream
+      responses:
+        "200":
+          description: Stream returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: "#/components/schemas/article"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        '401': {$ref: '#/components/responses/UnauthorizedError'}
+        '404': {$ref: '#/components/responses/NotFound'}
         "500": {$ref: "#/components/responses/InternalServerError"}

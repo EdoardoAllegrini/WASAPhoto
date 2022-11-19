@@ -18,17 +18,41 @@ components:
       description: |-
         The request was not compliant with the documentation
         (eg. missing fields, etc).
+      content:
+        application/json:
+          schema:
+            description: An error object
+            $ref: '#/components/schemas/Error'
     InternalServerError: 
       description: |-
         The server encountered an internal error.
         Further info in server logs.
+      content:
+        application/json:
+          schema:
+            description: An error object
+            $ref: '#/components/schemas/Error'
     NotFound:
-          description: Page not found.
+      description: Page not found.
+      content:
+        application/json:
+          schema:
+            description: An error object
+            $ref: '#/components/schemas/Error'
     UsernameNotAvailable:
       description: The username is not available.
+      content:
+        application/json:
+          schema:
+            description: An error object
+            $ref: '#/components/schemas/Error'
     UnauthorizedError:
       description: Access token is missing or invalid.
-
+      content:
+        application/json:
+          schema:
+            description: An error object
+            $ref: '#/components/schemas/Error'
   parameters:
     username:
       schema:
@@ -37,12 +61,14 @@ components:
           ^(?=.{3,16}$)[a-zA-Z0-9._]+$
         minLength: 3 
         maxLength: 16
+        description: A user
         example: Maria 
       name: username
       in: path 
       required: true
     photo-id:
       schema:
+        description: ID of a photo
         type: integer
         example: 1
       name: photo-id
@@ -50,6 +76,7 @@ components:
       required: true
     comment-id:
       schema:
+        description: ID of a comment
         type: integer
         example: 1
       name: comment-id
@@ -57,6 +84,22 @@ components:
       required: true
 
   schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          description: The response code 
+          type: string
+          example: "404"
+          minLength: 3
+          maxLength: 3    
+        message:
+          description: The text of the error response
+          type: string
+          example: "Not Found"
+      required:
+        - code
+        - message
     posinteger:
       title: Positive integer
       type: integer
@@ -64,6 +107,7 @@ components:
       example: 1
     username:
       title: Username
+      description: The username
       type: string
       pattern: |-
         ^(?=.{3,16}$)[a-zA-Z0-9._]+$
@@ -77,7 +121,15 @@ components:
       properties:
         identifier:
           type: string
+          description: The user identifier
           example: "abcdef012345"
+          minLength: 3
+          maxLength: 16
+    id:
+      description: Unique identifier.
+      type: integer
+      example: 1
+      readOnly: true
     photo:
       title: Photo
       description: |-
@@ -85,11 +137,7 @@ components:
         and the timestamp.
       type: object
       properties:
-        id:
-          description: Unique image identifier.
-          type: integer
-          example: 1
-          readOnly: true
+        id: {$ref: "#/components/schemas/id"}
         photo-file: {$ref: "#/components/schemas/photoFile"}
         timestamp: {$ref: "#/components/schemas/timestamp"}
         username: {$ref: "#/components/schemas/username"}
@@ -98,30 +146,31 @@ components:
       description: The image's caption.
       type: string
       example: "Visiting CERN"
+      minLength: 1
+      maxLength: 250
     photoFile:
       type: string
-      format: base64
+      format: binary
+      description: The photo file
     profileStats:
       title: Profile Statistics
       properties:
-        followers:
-          type: array
-          items: {$ref: "#/components/schemas/username"}
-        following: 
-          type: array
-          items: {$ref: "#/components/schemas/username"}
+        followers: {$ref: "#/components/schemas/userArray"}
+        following: {$ref: "#/components/schemas/userArray"}
     article:
       title: A post of the stream
       description: |- 
         A photo with the user that posted it, likes and comments.
       properties:
         photo: {$ref: "#/components/schemas/photo"}
-        likes: 
-          type: array
-          items: {$ref: "#/components/schemas/username"}
-        comments: 
-          type: array
-          items: {$ref: "#/components/schemas/comment"}
+        likes: {$ref: "#/components/schemas/userArray"}
+        comments: {$ref: "#/components/schemas/commentArray"}
+    commentArray:
+      description: An array of comments
+      type: array
+      items: {$ref: "#/components/schemas/comment"}
+      minItems: 0
+      maxItems: 1000000
     profile:
       title: Profile
       description: An object describing user's profile.
@@ -131,9 +180,9 @@ components:
         photos:
           type: array
           items: {$ref: "#/components/schemas/photo"}
-        n_photos: 
-          type: integer
-          minimum: 0
+          minItems: 0
+          maxItems: 5000
+        n_photos: {$ref: "#/components/schemas/posinteger"}
         stats: {$ref: "#/components/schemas/profileStats"}
     comment:
       title: Comment
@@ -143,21 +192,29 @@ components:
         user: {$ref: "#/components/schemas/username"}
         text: {$ref: "#/components/schemas/commentText"}
         timestamp: {$ref: "#/components/schemas/timestamp"}
-        id:
-          description: Unique comment identifier.
-          type: integer
-          example: 1
-          readOnly: true
+        id: {$ref: "#/components/schemas/id"}
     timestamp:
       title: Timestamp
+      description: The timestamp 
       type: string
+      minLength: 19
+      maxLength: 19
       format: date-time
       example: "2022-05-23T08:00:00"
       readOnly: true
     commentText:
       type: string
+      description: The text of the comment
+      minLength: 1
       maxLength: 250
       example: Nice photo!
+    userArray:
+      type: array
+      description: An array of users
+      items: {$ref: "#/components/schemas/username"}
+      minItems: 0
+      maxItems: 5000000
+
 
 
 paths:
@@ -176,6 +233,7 @@ paths:
         content:
           application/json: 
             schema: 
+              description: A username object
               type: object 
               properties:
                 name: {$ref: "#/components/schemas/username"}
@@ -248,7 +306,7 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
         "500": {$ref: "#/components/responses/InternalServerError"}
               
-  /media/: 
+  /{username}/media/: 
     parameters:
       - $ref: "#/components/parameters/username"
     post:
@@ -257,13 +315,14 @@ paths:
       tags: ["media"]
       summary: Upload a new photo
       description: |-
-        Adds a photo to the profile authenticated.
+        Adds a photo to the profile in path if matches the one authenticated.
       operationId: uploadPhoto
       requestBody:
         description: Photo details
         content:
           multipart/form-data:
             schema:
+              description: An object containing the photo file and its caption
               type: object
               properties:
                 photoCaption: {$ref: "#/components/schemas/photoCaption"}
@@ -280,7 +339,7 @@ paths:
         '401': {$ref: '#/components/responses/UnauthorizedError'}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /media/{photo-id}:
+  /{username}/media/{photo-id}:
     parameters:
       - $ref: "#/components/parameters/photo-id"
       - $ref: "#/components/parameters/username"
@@ -289,7 +348,9 @@ paths:
         - bearerAuth: []
       tags: ["media"]
       summary: delete photo
-      description: If id-photo given is correct then deletes the photo from the profile of user authenticated.
+      description: |-
+        If id-photo given is correct then deletes the photo from the profile in path if matches the one
+        authenticated.
       operationId: deletePhoto
       responses:
         "204":
@@ -316,9 +377,7 @@ paths:
           description: List is returned successfully.
           content:
             application/json:
-              schema:
-                type: array
-                items: {$ref: "#/components/schemas/username"}
+              schema: {$ref: "#/components/schemas/userArray"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
@@ -354,7 +413,7 @@ paths:
         posted by username in path, removes the like.
       operationId: unlikePhoto
       responses:
-        "200":
+        "204":
           description: Unliked successfully.
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
@@ -378,9 +437,7 @@ paths:
           description: List is returned successfully.
           content:
             application/json:
-              schema:
-                type: array
-                items: {$ref: "#/components/schemas/comment"}
+              schema: {$ref: "#/components/schemas/commentArray"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
@@ -401,6 +458,7 @@ paths:
           application/json:
             schema: 
               type: object
+              description: The text of the comment
               properties:
                 text: {$ref: "#/components/schemas/commentText"}
         required: true
@@ -409,7 +467,8 @@ paths:
           description: Commented successfully.
           content:
             application/json:
-              schema: 
+              schema:
+                description: The comment published
                 type: object
                 properties:
                     comment: {$ref: "#/components/schemas/comment"}
@@ -431,9 +490,9 @@ paths:
       description: |-
         If the user authenticated has posted the photo, 
         comment relative to the one given in path is removed.
-      operationId: removeComment
+      operationId: uncommentPhoto
       responses:
-        "200":
+        "204":
           description: Comment removed successfully from the photo
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
@@ -455,6 +514,7 @@ paths:
         content:
           application/json:
             schema: 
+              description: The user to follow
               type: object
               properties:
                 user: {$ref: "#/components/schemas/username"}
@@ -465,6 +525,7 @@ paths:
             application/json:
               schema:
                 type: object
+                description: The username followed
                 properties:
                   user: {$ref: "#/components/schemas/username"}
         "400": {$ref: "#/components/responses/BadRequest"}
@@ -482,9 +543,7 @@ paths:
           description: List of following.
           content:
             application/json:
-              schema:
-                type: array
-                items: { $ref: "#/components/schemas/username" }
+              schema: {$ref: "#/components/schemas/userArray"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
@@ -503,7 +562,7 @@ paths:
         if the account authenticated follows username then unfollows.
       operationId: unfollowUser
       responses:
-        "200":
+        "204":
           description: Unfollowed successfully      
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
@@ -525,6 +584,7 @@ paths:
         content:
           application/json:
             schema:
+              description: The user to ban
               type: object
               properties:
                 user: {$ref: "#/components/schemas/username"}
@@ -534,6 +594,7 @@ paths:
           content: 
             application/json:
               schema:
+                description: The username banned
                 type: object
                 properties:
                   user: {$ref: "#/components/schemas/username"}
@@ -551,9 +612,7 @@ paths:
           description: List of banned
           content:
             application/json:
-              schema:
-                type: array
-                items: { $ref: "#/components/schemas/username" }
+              schema: {$ref: "#/components/schemas/userArray"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
@@ -570,7 +629,7 @@ paths:
         if username is banned by the account authenticated then is unbanned.
       operationId: unbanUser
       responses:
-        "200":
+        "204":
           description: Unbanned successfully     
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
@@ -593,6 +652,7 @@ paths:
           content:
             application/json:
               schema:
+                description: An array of articles objects
                 type: array
                 items: {$ref: "#/components/schemas/article"}
         "400": {$ref: "#/components/responses/BadRequest"}

@@ -18,41 +18,16 @@ components:
       description: |-
         The request was not compliant with the documentation
         (eg. missing fields, etc).
-      content:
-        application/json:
-          schema:
-            description: An error object
-            $ref: '#/components/schemas/Error'
     InternalServerError: 
       description: |-
         The server encountered an internal error.
         Further info in server logs.
-      content:
-        application/json:
-          schema:
-            description: An error object
-            $ref: '#/components/schemas/Error'
     NotFound:
       description: Page not found.
-      content:
-        application/json:
-          schema:
-            description: An error object
-            $ref: '#/components/schemas/Error'
     UsernameNotAvailable:
       description: The username is not available.
-      content:
-        application/json:
-          schema:
-            description: An error object
-            $ref: '#/components/schemas/Error'
     UnauthorizedError:
       description: Access token is missing or invalid.
-      content:
-        application/json:
-          schema:
-            description: An error object
-            $ref: '#/components/schemas/Error'
   parameters:
     username:
       schema:
@@ -84,23 +59,8 @@ components:
       required: true
 
   schemas:
-    Error:
-      type: object
-      properties:
-        code:
-          description: The response code 
-          type: string
-          example: "404"
-          minLength: 3
-          maxLength: 3    
-        message:
-          description: The text of the error response
-          type: string
-          example: "Not Found"
-      required:
-        - code
-        - message
     posinteger:
+      description: A positive integer
       title: Positive integer
       type: integer
       minimum: 0
@@ -123,6 +83,7 @@ components:
           type: string
           description: The user identifier
           example: "abcdef012345"
+          pattern: ".*"
           minLength: 3
           maxLength: 16
     id:
@@ -146,14 +107,19 @@ components:
       description: The image's caption.
       type: string
       example: "Visiting CERN"
+      pattern: ".*"
       minLength: 1
       maxLength: 250
     photoFile:
       type: string
       format: binary
       description: The photo file
+      pattern: ".*"
+      minLength: 0
+      maxLength: 10000000000000
     profileStats:
       title: Profile Statistics
+      description: The profile statistics
       properties:
         followers: {$ref: "#/components/schemas/userArray"}
         following: {$ref: "#/components/schemas/userArray"}
@@ -179,6 +145,7 @@ components:
         profile-name: {$ref: "#/components/schemas/username"}
         photos:
           type: array
+          description: An array of photos
           items: {$ref: "#/components/schemas/photo"}
           minItems: 0
           maxItems: 5000
@@ -200,11 +167,14 @@ components:
       minLength: 19
       maxLength: 19
       format: date-time
+      pattern: |-
+        [0-9]{1,4}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}
       example: "2022-05-23T08:00:00"
       readOnly: true
     commentText:
       type: string
       description: The text of the comment
+      pattern: ".*"
       minLength: 1
       maxLength: 250
       example: Nice photo!
@@ -227,7 +197,7 @@ paths:
           If the user does not exist, it will be created,
           and an identifier is returned.
           If the user exists, the user identifier is returned.
-      operationId: doLogin 
+      operationId: doLogin
       requestBody:
         description: User details.
         content:
@@ -251,9 +221,9 @@ paths:
 
 
   /{username}/:
+    parameters:
+    - $ref: "#/components/parameters/username"
     put:
-      parameters:
-        - $ref: "#/components/parameters/username"
       security:
         - bearerAuth: []
       tags: ["username"]
@@ -267,6 +237,7 @@ paths:
         content:
           application/json:
             schema:
+              description: The new username to set
               type: object 
               properties:
                 name: {$ref: "#/components/schemas/username"}
@@ -284,8 +255,6 @@ paths:
         "500": {$ref: "#/components/responses/InternalServerError"}
 
     get:
-      parameters: 
-        - $ref: "#/components/parameters/username"
       security:
         - bearerAuth: []
       tags: ["profile"]
@@ -519,7 +488,7 @@ paths:
               properties:
                 user: {$ref: "#/components/schemas/username"}
       responses:
-        "201":
+        "200":
           description: Followed successfully
           content: 
             application/json:
@@ -589,7 +558,7 @@ paths:
               properties:
                 user: {$ref: "#/components/schemas/username"}
       responses:
-        "201":
+        "200":
           description: Banned successfully
           content: 
             application/json:
@@ -642,7 +611,7 @@ paths:
         - bearerAuth: []
       tags: ["stream"]
       summary: My stream
-      description: |-
+      description: |
         Returns the stream of the user authenticated.
         The stream is made by a list of articles with photo, username that posted it likes and comments.
       operationId: getMyStream
@@ -655,6 +624,8 @@ paths:
                 description: An array of articles objects
                 type: array
                 items: {$ref: "#/components/schemas/article"}
+                minItems: 0
+                maxItems: 1000
         "400": {$ref: "#/components/responses/BadRequest"}
         '401': {$ref: '#/components/responses/UnauthorizedError'}
         '404': {$ref: '#/components/responses/NotFound'}

@@ -1,3 +1,22 @@
+tags:
+  - name: "login"
+    description: Log in
+  - name: "username"
+    description: Username operations
+  - name: "media"
+    description: Media operations
+  - name: "profile"
+    description: Profile operations
+  - name: "likes"
+    description: Likes operations
+  - name: "comments"
+    description: Comments operations
+  - name: "follow"
+    description: Follow operations
+  - name: "ban"
+    description: Ban operations
+  - name: "stream"
+    description: Stream operations
 openapi: 3.0.3 
 info:
   title: WASAPhoto backend REST APIs

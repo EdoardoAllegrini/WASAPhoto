@@ -487,14 +487,14 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /follow/:
+  /{username}/follow/:
     post:
       security:
         - bearerAuth: []
       tags: ["follow"]
       summary: Follows a user
       description: |-
-        If the account authenticated doesn't follow existent user given in body request
+        If the account authenticated, which is the same one in path, doesn't follow existent user given in body request
         then starts follow.
       operationId: followUser
       requestBody:
@@ -524,7 +524,7 @@ paths:
     get:
       tags: ["follow"]
       summary: List of all following users
-      description: Returns the list of users followed by account authenticated.
+      description: Returns the list of users followed by account authenticated, which is the same one in path.
       operationId: getFollowing
       responses:
         "200": 
@@ -537,7 +537,7 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
           
-  /follow/{username}:
+  /{username}/follow/{username}:
     parameters:
       - $ref: "#/components/parameters/username"
     delete:
@@ -546,7 +546,7 @@ paths:
       tags: ["follow"]
       summary: unfollow
       description: |-
-        Takes in path a username, if it doesn't exist returns an error,
+        Takes in path a username (second variable), if it doesn't exist returns an error,
         if the account authenticated follows username then unfollows.
       operationId: unfollowUser
       responses:
@@ -557,14 +557,14 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /ban/:
+  /{username}/ban/:
     post:
       security:
         - bearerAuth: []
       tags: ["ban"]
       summary: ban a user
       description: |-
-        User authenticated bans username given in input, 
+        User authenticated which is the same one in path, bans username given in body,
         if it doesn't exist returns an error.
       operationId: banUser
       requestBody:
@@ -606,14 +606,14 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /ban/{username}:
+  /{username}/ban/{username}:
     parameters:
       - $ref: "#/components/parameters/username"
     delete:
       tags: ["ban"]
       summary: unban
       description: |-
-        Takes in path a username, if it doesn't exist returns an error,
+        Takes in path a username (second argument), if it doesn't exist returns an error,
         if username is banned by the account authenticated then is unbanned.
       operationId: unbanUser
       responses:

@@ -488,6 +488,8 @@ paths:
         "500": {$ref: "#/components/responses/InternalServerError"}
 
   /{username}/follow/:
+    parameters:
+      - $ref: "#/components/parameters/username"
     post:
       security:
         - bearerAuth: []
@@ -558,6 +560,8 @@ paths:
         "500": {$ref: "#/components/responses/InternalServerError"}
 
   /{username}/ban/:
+    parameters:
+      - $ref: "#/components/parameters/username"
     post:
       security:
         - bearerAuth: []

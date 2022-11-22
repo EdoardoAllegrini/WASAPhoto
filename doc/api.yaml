@@ -231,7 +231,7 @@ paths:
       description: |-
         If the user in path is relative to the user authenticated 
         then changes his username to the one given in request body.
-      operationId: setMyUsername
+      operationId: setMyUserName
       requestBody:
         description: new username
         content:
@@ -362,7 +362,7 @@ paths:
         posted by username in path.
       operationId: likePhoto
       responses:
-        "200":
+        "201":
           description: Liked successfully.
           content:
             application/json:
@@ -432,7 +432,7 @@ paths:
                 text: {$ref: "#/components/schemas/commentText"}
         required: true
       responses:
-        "200":
+        "201":
           description: Commented successfully.
           content:
             application/json:
@@ -488,7 +488,7 @@ paths:
               properties:
                 user: {$ref: "#/components/schemas/username"}
       responses:
-        "200":
+        "201":
           description: Followed successfully
           content: 
             application/json:
@@ -558,7 +558,7 @@ paths:
               properties:
                 user: {$ref: "#/components/schemas/username"}
       responses:
-        "200":
+        "201":
           description: Banned successfully
           content: 
             application/json:

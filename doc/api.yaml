@@ -68,12 +68,6 @@ components:
       name: userLike
       in: path 
       required: true
-    likeid:
-      schema: {$ref: "#/components/schemas/username"}
-      name: likeid
-      in: path
-      description: User that liked the photo
-      required: true
     photo-id:
       schema:
         description: ID of a photo

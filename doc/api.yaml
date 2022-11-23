@@ -514,25 +514,6 @@ paths:
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-
-  /{username}/follow/:
-    parameters:
-      - $ref: "#/components/parameters/username"    
-    get:
-      tags: ["follow"]
-      summary: List of all following users
-      description: Returns the list of users followed by account authenticated, which is the same one in path.
-      operationId: getFollowing
-      responses:
-        "200": 
-          description: List of following.
-          content:
-            application/json:
-              schema: {$ref: "#/components/schemas/userArray"}
-        "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: '#/components/responses/UnauthorizedError'}
-        "404": {$ref: "#/components/responses/NotFound"}
-        "500": {$ref: "#/components/responses/InternalServerError"}
           
   /{username}/follow/{userFollow}:
     parameters:
@@ -549,6 +530,9 @@ paths:
       responses:
         "201":
           description: Followed successfully
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/username"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
@@ -571,25 +555,6 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /{username}/ban/:
-    parameters:
-      - $ref: "#/components/parameters/username"
-    get:
-      tags: ["ban"]
-      summary: List of all users banned
-      description: Returns the list of users banned by account authenticated.
-      operationId: getBanned
-      responses:
-        "200": 
-          description: List of banned
-          content:
-            application/json:
-              schema: {$ref: "#/components/schemas/userArray"}
-        "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: '#/components/responses/UnauthorizedError'}
-        "404": {$ref: "#/components/responses/NotFound"}
-        "500": {$ref: "#/components/responses/InternalServerError"}
-
   /{username}/ban/{userBan}:
     parameters:
       - $ref: "#/components/parameters/username"
@@ -606,6 +571,9 @@ paths:
       responses:
         "201":
           description: Banned successfully
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/username"}        
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
@@ -614,6 +582,8 @@ paths:
     delete:
       tags: ["ban"]
       summary: unban
+      security:
+        - bearerAuth: []
       description: |-
         Takes in path a username {username}, if it doesn't exist returns an error,
         if username is banned by the account authenticated {userBan} then is unbanned.

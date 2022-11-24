@@ -258,8 +258,6 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-
-
   /{username}/:
     parameters:
     - $ref: "#/components/parameters/username"
@@ -519,7 +517,7 @@ paths:
       tags: ["follow"]
       summary: Follows a user
       description: |-
-        Account authenticated {userFollow} starts follow {username}.
+        Account authenticated {username} starts follow {userFollow}.
       operationId: followUser
       responses:
         "201":
@@ -538,8 +536,7 @@ paths:
       tags: ["follow"]
       summary: unfollow
       description: |-
-        Takes in path a username {username}, if it doesn't exist returns an error,
-        if the account authenticated {userFollow} follows username then unfollows.
+        If the account authenticated {username} follows {userfolloW} then unfollows.
       operationId: unfollowUser
       responses:
         "204":
@@ -559,7 +556,7 @@ paths:
       tags: ["ban"]
       summary: ban a user
       description: |-
-        User authenticated {userBan} bans username {username},
+        User authenticated {username} bans username {userBan},
         if it doesn't exist returns an error.
       operationId: banUser
       responses:
@@ -579,8 +576,7 @@ paths:
       security:
         - bearerAuth: []
       description: |-
-        Takes in path a username {username}, if it doesn't exist returns an error,
-        if username is banned by the account authenticated {userBan} then is unbanned.
+        If {userBan} is banned by the account authenticated {username} then is unbanned.
       operationId: unbanUser
       responses:
         "204":

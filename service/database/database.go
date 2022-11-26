@@ -47,8 +47,17 @@ type AppDatabase interface {
 	// CreateUser creates a new user in the database. It returns an updated User object (with the ID)
 	CreateUser(User) (User, error)
 
-	// GetUser returns the user in the database with username given, if exists
+	// GetUser returns the user in the database with id, username, identifier given
 	GetUser(User) (*User, error)
+
+	// GetUserFromUsername returns the user in the database with username given, if exists
+	GetUserFromUsername(string) (*User, error)
+
+	// GetUserFromIdentifier returns the user in the database with identifier given, if exists
+	GetUserFromIdentifier(string) (*User, error)
+
+	// SetMyUserName changes the username of User to string given in input
+	SetMyUserName(User, string) (*User, error)
 
 	Ping() error
 }

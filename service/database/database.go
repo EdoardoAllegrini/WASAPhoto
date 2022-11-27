@@ -65,6 +65,12 @@ type AppDatabase interface {
 	// SetMyUserName changes the username of User to string given in input
 	SetMyUserName(User, string) (*User, error)
 
+	// CreateMedia inserts the photo and its caption in the db
+	CreateMedia(string, string, []byte) (uint64, error)
+
+	// GetImageFromID returns the image in the database with id given, if exists
+	GetImageFromID(uint64) ([]byte, error)
+
 	Ping() error
 }
 
@@ -88,6 +94,15 @@ func New(db *sql.DB) (AppDatabase, error) {
 	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := `CREATE TABLE users (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, identifier TEXT NOT NULL UNIQUE);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='media';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE media (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, caption TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, image BLOB NOT NULL);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)

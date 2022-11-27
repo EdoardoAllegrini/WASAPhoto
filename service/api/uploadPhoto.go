@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"WASAPhoto.uniroma1.it/wasaphoto/service/api/reqcontext"
@@ -11,8 +13,10 @@ import (
 const MaxMemory int64 = 14000
 
 func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
 	// Get the username in path
-	username := ps.ByName("username")
+	// username := ps.ByName("username")
+	username := "edoardo"
 
 	// Get User relative to username given in path if exists
 	var user User
@@ -54,10 +58,32 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	r.ParseMultipartForm(MaxMemory)
-	photoCaption := r.PostFormValue("photoCaption")
-	photoFile := r.PostFormValue("photoFile")
+	photoCaption := r.FormValue("photoCaption")
+	photoFile, _, err := r.FormFile("photoFile")
 
-	fmt.Printf("Caption : %s\n", photoCaption)
-	fmt.Printf("Photo : %s\n", photoFile)
-	return
+	if err != nil {
+		fmt.Println("Error Retrieving the File")
+		fmt.Println(err)
+		return
+	}
+	defer photoFile.Close()
+
+	// read image got into a byte array
+	fileBytes, err := io.ReadAll(photoFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	imageID, err := rt.db.CreateMedia(username, photoCaption, fileBytes)
+	if err != nil {
+		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
+		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
+		ctx.Logger.WithError(err).Error("can't store image")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Send the output to the user.
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(imageID)
 }

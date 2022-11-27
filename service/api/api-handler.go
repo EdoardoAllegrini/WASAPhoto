@@ -9,7 +9,10 @@ func (rt *_router) Handler() http.Handler {
 	// Register routes
 	rt.router.POST("/session/", rt.wrap(rt.doLogin))
 	rt.router.PUT("/:username/", rt.wrap(rt.setMyUserName))
-	rt.router.POST("/:username/media/", rt.wrap(rt.uploadPhoto))
+
+	// TO FIX: should be /:username/media
+	rt.router.POST("/media/", rt.wrap(rt.uploadPhoto))
+	rt.router.GET("/media/", rt.wrap(rt.getImage))
 
 	// TO DELETE
 	rt.router.GET("/", rt.wrap(rt.getUsers))

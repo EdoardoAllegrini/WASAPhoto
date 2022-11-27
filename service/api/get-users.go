@@ -18,5 +18,4 @@ func (rt *_router) getUsers(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 	fmt.Println("Error selecting on db")
-	return
 }

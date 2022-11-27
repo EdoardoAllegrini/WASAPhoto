@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"WASAPhoto.uniroma1.it/wasaphoto/service/api/reqcontext"
@@ -25,7 +24,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		// discovered that the username data is not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println("[-] Username in path is not valid")
+		// fmt.Println("[-] Username in path is not valid")
 		return
 	}
 
@@ -53,7 +52,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		// User in path is different from the one authenticated
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println("[+] Users are different")
+		// fmt.Println("[+] Users are different")
 		return
 	}
 	// Check if username given in body is valid and available
@@ -68,7 +67,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		// Here we validated the user structure content (username), and we
 		// discovered that the username data is not valid.
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println("[-] Username in body is not valid")
+		// fmt.Println("[-] Username in body is not valid")
 		return
 	}
 
@@ -81,7 +80,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	if errors.Is(err, database.ErrUsernameNotAvailable) {
 		// The username in body is not available, reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusConflict)
-		fmt.Printf("[-] Username %s ain't available\n", userBody.Username)
+		// fmt.Printf("[-] Username %s ain't available\n", userBody.Username)
 		return
 	}
 	if err != nil {

@@ -8,7 +8,9 @@ import (
 func (rt *_router) Handler() http.Handler {
 	// Register routes
 	rt.router.POST("/session/", rt.wrap(rt.doLogin))
-	rt.router.PUT("/:username", rt.wrap(rt.setMyUserName))
+	rt.router.PUT("/:username/", rt.wrap(rt.setMyUserName))
+	rt.router.POST("/:username/media/", rt.wrap(rt.uploadPhoto))
+
 	// TO DELETE
 	rt.router.GET("/", rt.wrap(rt.getUsers))
 	// Special routes

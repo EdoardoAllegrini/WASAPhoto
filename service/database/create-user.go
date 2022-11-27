@@ -1,9 +1,5 @@
 package database
 
-import (
-	"fmt"
-)
-
 func (db *appdbimpl) CreateUser(u User) (User, error) {
 	u.Identifier = "ID_" + u.Username
 	// res, err := db.c.Exec(`INSERT INTO users (username, identifier) VALUES (?, ?)`,
@@ -19,6 +15,6 @@ func (db *appdbimpl) CreateUser(u User) (User, error) {
 	}
 
 	u.ID = uint64(lastInsertID)
-	fmt.Printf("[+] Created id: %d, username: %s, identifier: %s\n", u.ID, u.Username, u.Identifier)
+	// fmt.Printf("[+] Created id: %d, username: %s, identifier: %s\n", u.ID, u.Username, u.Identifier)
 	return u, nil
 }

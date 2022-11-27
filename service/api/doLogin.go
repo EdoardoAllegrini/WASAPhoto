@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"WASAPhoto.uniroma1.it/wasaphoto/service/api/reqcontext"
@@ -51,7 +50,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		user.FromDatabase(dbnewuser)
 	} else {
 		user.FromDatabase(*dbuser)
-		fmt.Printf("[+] Got id: %d, username: %s, identifier: %s\n", user.ID, user.Username, user.Identifier)
+		// fmt.Printf("[+] Got id: %d, username: %s, identifier: %s\n", user.ID, user.Username, user.Identifier)
 	}
 
 	// Send the output to the user.

@@ -36,6 +36,9 @@ import (
 	"fmt"
 )
 
+var ErrUserDoesNotExist = errors.New("user does not exist")
+var ErrUsernameNotAvailable = errors.New("username is not available")
+
 type User struct {
 	ID         uint64 `json:"id"`
 	Username   string `json:"username"`
@@ -46,6 +49,9 @@ type User struct {
 type AppDatabase interface {
 	// CreateUser creates a new user in the database. It returns an updated User object (with the ID)
 	CreateUser(User) (User, error)
+
+	// TO DELETE
+	GetAllUsers() ([]User, error)
 
 	// GetUser returns the user in the database with id, username, identifier given
 	GetUser(User) (*User, error)

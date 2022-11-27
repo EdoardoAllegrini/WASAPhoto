@@ -22,7 +22,6 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	} else if !user.IsValid() {
 		// Here we validated the user structure content (username), and we
 		// discovered that the username data is not valid.
-		// Note: the IsValid() function skips the ID check (see below).
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

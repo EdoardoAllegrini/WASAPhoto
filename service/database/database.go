@@ -71,6 +71,12 @@ type AppDatabase interface {
 	// GetImageFromID returns the image in the database with id given, if exists
 	GetImageFromID(uint64) ([]byte, error)
 
+	// GetImagePoster returns the username of the user that posted photo with id given, if exists
+	GetImagePoster(uint64) (string, error)
+
+	// DeleteImage deletes the image in the database with id given, if exists
+	DeleteImage(uint64) ([]byte, error)
+
 	Ping() error
 }
 

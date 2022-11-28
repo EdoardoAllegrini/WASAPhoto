@@ -12,7 +12,7 @@ func (rt *_router) Handler() http.Handler {
 
 	// TO FIX: should be /:username/media
 	rt.router.POST("/media/", rt.wrap(rt.uploadPhoto))
-	rt.router.GET("/media/", rt.wrap(rt.getImage))
+	rt.router.GET("/media/:photo-id/", rt.wrap(rt.getImage))
 
 	// TO DELETE
 	rt.router.GET("/", rt.wrap(rt.getUsers))

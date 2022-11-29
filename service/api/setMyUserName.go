@@ -58,7 +58,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	// Check if username given in body is valid and available
 	var userBody User
 	err = json.NewDecoder(r.Body).Decode(&userBody)
-	_ = r.Body.Close()
+
 	if err != nil {
 		// The body was not a parseable JSON, reject it
 		w.WriteHeader(http.StatusBadRequest)

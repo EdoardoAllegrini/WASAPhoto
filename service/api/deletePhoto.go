@@ -1,10 +1,12 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"WASAPhoto.uniroma1.it/wasaphoto/service/api/reqcontext"
+	"WASAPhoto.uniroma1.it/wasaphoto/service/database"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -75,8 +77,12 @@ func (rt *_router) deletePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	_, errDel := rt.db.DeleteImage(photoid)
-	if errDel != nil {
+	errDel := rt.db.DeleteImage(photoid)
+	if errors.Is(errDel, database.ErrImageDoesNotExist) {
+		// The fountain (indicated by `id`) does not exist, reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusNotFound)
+		return
+	} else if errDel != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
 		ctx.Logger.WithError(err).Error("can't delete the image")

@@ -1,27 +1,19 @@
 package database
 
-func (db *appdbimpl) DeleteImage(photoid uint64) ([]byte, error) {
-	rows, err := db.c.Query(`DELETE FROM media WHERE id=?;`, photoid)
+func (db *appdbimpl) DeleteImage(photoid uint64) error {
+	res, err := db.c.Exec(`DELETE FROM media WHERE id=?;`, photoid)
 
 	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = rows.Close() }()
-
-	var ret []byte
-	// Here we read the resultset
-	for rows.Next() {
-		var tmp []byte
-		err = rows.Scan(&tmp)
-		if err != nil {
-			return nil, err
-		}
-		ret = tmp
+		return err
 	}
 
-	if rows.Err() != nil {
-		return nil, err
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	} else if affected == 0 {
+		// If we didn't delete any row, then the fountain didn't exist
+		return ErrImageDoesNotExist
 	}
 
-	return ret, nil
+	return nil
 }

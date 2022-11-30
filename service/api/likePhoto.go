@@ -10,10 +10,8 @@ import (
 )
 
 func (rt *_router) likePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
 	// Get the username in path
-	// username := ps.ByName("username")
-	username := "edoardo"
+	username := ps.ByName("username")
 
 	dbuser, err := rt.db.GetUserFromUsername(username)
 	if err != nil {
@@ -54,6 +52,21 @@ func (rt *_router) likePhoto(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 
+	userLike := ps.ByName("userLike")
+	dbuserLiker, errLiker := rt.db.GetUserFromUsername(userLike)
+	if errLiker != nil {
+		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
+		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
+		ctx.Logger.WithError(err).Error("can't get the user")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if dbuserLiker == nil {
+		// The user does not exists.
+		// Reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	// Get Authentication Token from Header
 	auth_token := parseAuthToken(r)
 
@@ -73,14 +86,13 @@ func (rt *_router) likePhoto(w http.ResponseWriter, r *http.Request, ps httprout
 	}
 
 	// Check that user authenticated matches userLike given in path
-	userLike := ps.ByName("userLike")
 
 	// The authentication and the user in path are valid.
 	// Check if user authenticated matches to the one in path
 	if dbuserAuth.Username != userLike {
 		// User in path is different from the one authenticated
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnauthorized)
 		// fmt.Println("[+] Users are different")
 		return
 	}

@@ -74,6 +74,5 @@ func (db *appdbimpl) GetUserFromIdentifier(identifier string) (*User, error) {
 	if rows.Err() != nil {
 		return nil, err
 	}
-
 	return ret, nil
 }

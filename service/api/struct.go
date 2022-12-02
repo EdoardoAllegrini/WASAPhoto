@@ -11,9 +11,17 @@ const (
 )
 
 type User struct {
-	ID         uint64    `json:"id"`
+	ID         uint64 `json:"id"`
 	Username   string `json:"username"`
 	Identifier string `json:"identifier"`
+}
+
+type Comment struct {
+	ID        uint64 `json:"id"`
+	Image     uint64 `json:"image"`
+	User      uint64 `json:"username"`
+	Text      string `json:"text"`
+	Timestamp string `json:"timestamp"`
 }
 
 // FromDatabase populates the struct with data from the database, overwriting all values.

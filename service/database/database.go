@@ -46,6 +46,14 @@ type User struct {
 	Identifier string `json:"identifier"`
 }
 
+type Comment struct {
+	ID        uint64 `json:"id"`
+	Image     uint64 `json:"image"`
+	User      uint64 `json:"username"`
+	Text      string `json:"text"`
+	Timestamp string `json:"timestamp"`
+}
+
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
 	// CreateUser creates a new user in the database. It returns an updated User object (with the ID)
@@ -108,6 +116,15 @@ type AppDatabase interface {
 	// GetBanned returns the list of users banned by username
 	GetBanned(uint64) ([]string, error)
 
+	// Comment adds a comment to the photo given, returns the id of the comment
+	Comment(uint64, uint64, string) (uint64, error)
+
+	// GetComments returns all the comment of the photo given
+	GetComments(uint64) ([]Comment, error)
+
+	// RemoveComment removes the comment given from the photo in path
+	RemoveComment(uint64) error
+
 	Ping() error
 }
 
@@ -131,6 +148,8 @@ func New(db *sql.DB) (AppDatabase, error) {
 	// db.QueryRow(`DROP TABLE likes;`).Scan(&tableName)
 	// db.QueryRow(`DROP TABLE follow;`).Scan(&tableName)
 	// db.QueryRow(`DROP TABLE ban;`).Scan(&tableName)
+	// db.QueryRow(`DROP TABLE comments;`).Scan(&tableName)
+
 	// return nil, nil
 
 	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&tableName)
@@ -144,7 +163,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='media';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE media (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username INTEGER NOT NULL, caption TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, image BLOB NOT NULL, FOREIGN KEY (username) REFERENCES users(id));`
+		sqlStmt := `CREATE TABLE media (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username INTEGER NOT NULL, caption TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, image BLOB NOT NULL, FOREIGN KEY (username) REFERENCES users(id));`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -172,6 +191,15 @@ func New(db *sql.DB) (AppDatabase, error) {
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='ban';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := `CREATE TABLE ban (username INTEGER NOT NULL, ban INTEGER NOT NULL, PRIMARY KEY (username, ban), FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (ban) REFERENCES users(id) ON DELETE CASCADE);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comments';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE comments (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, image INTEGER NOT NULL, username INTEGER NOT NULL, comment TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)

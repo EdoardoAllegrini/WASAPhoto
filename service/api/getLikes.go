@@ -12,8 +12,7 @@ import (
 func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
 	// Get the username in path
-	// username := ps.ByName("username")
-	username := "edoardo"
+	username := ps.ByName("username")
 
 	dbuser, err := rt.db.GetUserFromUsername(username)
 	if err != nil {

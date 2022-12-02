@@ -11,8 +11,7 @@ import (
 func (rt *_router) getImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
 	// Get the username in path
-	// username := ps.ByName("username")
-	username := "edoardo"
+	username := ps.ByName("username")
 
 	// Check if authentication is valid
 	dbuser, err := rt.db.GetUserFromUsername(username)

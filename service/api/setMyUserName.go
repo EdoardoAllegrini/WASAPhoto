@@ -51,7 +51,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	if dbuser.Username != user.Username {
 		// User in path is different from the one authenticated
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnauthorized)
 		// fmt.Println("[+] Users are different")
 		return
 	}

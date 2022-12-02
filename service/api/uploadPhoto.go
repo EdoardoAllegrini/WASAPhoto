@@ -13,10 +13,8 @@ import (
 const MaxMemory int64 = 14000
 
 func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
 	// Get the username in path
-	// username := ps.ByName("username")
-	username := "edoardo"
+	username := ps.ByName("username")
 
 	// Get User relative to username given in path if exists
 	var user User
@@ -53,7 +51,7 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 	if dbuser.Username != user.Username {
 		// User in path is different from the one authenticated
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnauthorized)
 		// fmt.Println("[+] Users are different")
 		return
 	}

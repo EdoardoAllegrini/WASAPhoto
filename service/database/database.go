@@ -51,9 +51,6 @@ type AppDatabase interface {
 	// CreateUser creates a new user in the database. It returns an updated User object (with the ID)
 	CreateUser(User) (User, error)
 
-	// TO DELETE
-	GetAllUsers() ([]User, error)
-
 	// GetUser returns the user in the database with id, username, identifier given
 	GetUser(User) (*User, error)
 
@@ -82,10 +79,34 @@ type AppDatabase interface {
 	GetLikes(uint64) ([]string, error)
 
 	// DeleteImage deletes the image in the database with id given, if exists
-	DeleteImage(uint64) (error)
+	DeleteImage(uint64) error
 
 	// SetLike is a function that let user relative to userLike set a like to the photo as photo-id posted by user given in path
-	SetLike(uint64, uint64) (error)
+	SetLike(uint64, uint64) error
+
+	// SetLike is a function that let user relative to userLike remove the like to the photo as photo-id posted by user given in path
+	RemoveLike(uint64, uint64) error
+
+	// CreateFollow is a function that adds a new follower (userFollow) to username profile
+	CreateFollow(uint64, uint64) error
+
+	// RemoveFollow is a function that removes the follower (userFollow) to username profile
+	RemoveFollow(uint64, uint64) error
+
+	// GetFollowers returns the list of users followed by username
+	GetFollowing(uint64) ([]string, error)
+
+	// GetFollowers returns the list of users that follow username
+	GetFollowers(uint64) ([]string, error)
+
+	// CreateBan is a function that adds userFollow to users banned by username
+	CreateBan(uint64, uint64) error
+
+	// RemoveBan is a function that removes the banned userFollow to username banned users
+	RemoveBan(uint64, uint64) error
+
+	// GetBanned returns the list of users banned by username
+	GetBanned(uint64) ([]string, error)
 
 	Ping() error
 }
@@ -105,6 +126,11 @@ func New(db *sql.DB) (AppDatabase, error) {
 	var tableName string
 
 	// db.QueryRow(`DROP TABLE users;`).Scan(&tableName)
+	// return nil, nil
+
+	// db.QueryRow(`DROP TABLE likes;`).Scan(&tableName)
+	// db.QueryRow(`DROP TABLE follow;`).Scan(&tableName)
+	// db.QueryRow(`DROP TABLE ban;`).Scan(&tableName)
 	// return nil, nil
 
 	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&tableName)
@@ -127,7 +153,25 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='likes';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE likes (image INTEGER NOT NULL, username INTEGER NOT NULL, PRIMARY KEY (image, username), FOREIGN KEY (image) REFERENCES media(id), FOREIGN KEY (username) REFERENCES users(id));`
+		sqlStmt := `CREATE TABLE likes (image INTEGER NOT NULL, username INTEGER NOT NULL, PRIMARY KEY (image, username), FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='follow';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE follow (username INTEGER NOT NULL, follow INTEGER NOT NULL, PRIMARY KEY (username, follow), FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (follow) REFERENCES users(id) ON DELETE CASCADE);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='ban';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE ban (username INTEGER NOT NULL, ban INTEGER NOT NULL, PRIMARY KEY (username, ban), FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (ban) REFERENCES users(id) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)

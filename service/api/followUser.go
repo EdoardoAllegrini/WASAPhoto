@@ -78,7 +78,7 @@ func (rt *_router) followUser(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	c, errC := rt.db.CheckBanned(dbuser.Username, dbuserAuth.Username)
+	c, errC := rt.db.CheckBanned(dbuserAuth.Username, dbuserFo.Username)
 	if errC != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

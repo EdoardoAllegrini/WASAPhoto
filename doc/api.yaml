@@ -143,7 +143,7 @@ components:
       description: The photo file
       pattern: ".*"
       minLength: 0
-      maxLength: 10000000000000
+      maxLength: 1000000
     photoUrl:
       type: string
       pattern: "http://.*"
@@ -183,8 +183,7 @@ components:
           description: An array of photos
           items: {$ref: "#/components/schemas/photo"}
           minItems: 0
-          maxItems: 5
-        n_photos: {$ref: "#/components/schemas/posinteger"}
+          maxItems: 1000
         stats: {$ref: "#/components/schemas/profileStats"}
     comment:
       title: Comment
@@ -194,6 +193,7 @@ components:
         user: {$ref: "#/components/schemas/username"}
         text: {$ref: "#/components/schemas/commentText"}
         timestamp: {$ref: "#/components/schemas/timestamp"}
+        image: {$ref: "#/components/schemas/photoUrl"}
         id: {$ref: "#/components/schemas/id"}
     timestamp:
       title: Timestamp
@@ -218,7 +218,7 @@ components:
       description: An array of users
       items: {$ref: "#/components/schemas/username"}
       minItems: 0
-      maxItems: 50
+      maxItems: 1000000
     articleArray:
       description: An array of articles objects
       type: array
@@ -229,7 +229,7 @@ components:
 
 paths:
 
-  /session:
+  /session/:
     post:
       tags: ["login"]
       summary: Logs in the user 
@@ -246,7 +246,7 @@ paths:
               description: A username object
               type: object 
               properties:
-                name: {$ref: "#/components/schemas/username"}
+                username: {$ref: "#/components/schemas/username"}
         required: true 
       responses:
         '201':
@@ -258,7 +258,7 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /{username}/:
+  /users/{username}/:
     parameters:
     - $ref: "#/components/parameters/username"
     put:
@@ -278,7 +278,7 @@ paths:
               description: The new username to set
               type: object 
               properties:
-                name: {$ref: "#/components/schemas/username"}
+                username: {$ref: "#/components/schemas/username"}
         required: true
       responses:
         "200":
@@ -298,9 +298,8 @@ paths:
       tags: ["profile"]
       summary: Returns the profile page of username given in path.
       description: |-
-        Takes in path a username and if exists returns in content his personal profile page
-        with the user's photos (in reverse chronological order), 
-        how many photos have been uploaded, the user's followers and following.
+        Takes in path a username, if exists and user authenticated is not banned by username then returns in content his personal profile page
+        with the user's photos (in reverse chronological order), the user's followers and following.
       operationId: getUserProfile
       responses:
         "200":
@@ -313,7 +312,7 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
         "500": {$ref: "#/components/responses/InternalServerError"}
               
-  /{username}/media/: 
+  /users/{username}/media/: 
     parameters:
       - $ref: "#/components/parameters/username"
     post:
@@ -346,18 +345,34 @@ paths:
         '401': {$ref: '#/components/responses/UnauthorizedError'}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /{username}/media/{photo-id}:
+  /users/{username}/media/{photo-id}/:
     parameters:
       - $ref: "#/components/parameters/photo-id"
       - $ref: "#/components/parameters/username"
+    
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["media"]
+      summary: get photo
+      description: Returns the photo file according to the path, if user authenticated is not banned by username in path
+      operationId: getPhoto
+      responses:
+        "200":
+          description: Photo returned successfully
+          content:
+            image/png:
+              schema: {$ref: "#/components/schemas/photoFile"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        '401': {$ref: '#/components/responses/UnauthorizedError'}
+        "500": {$ref: "#/components/responses/InternalServerError"}
     delete:
       security:
         - bearerAuth: []
       tags: ["media"]
       summary: delete photo
       description: |-
-        If id-photo given is correct then deletes the photo from the profile in path if matches the one
-        authenticated.
+        If user authenticated matches username in path and photo-id matches a photo uploaded by username then deletes it.
       operationId: deletePhoto
       responses:
         "204":
@@ -367,7 +382,7 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
         "500": {$ref: "#/components/responses/InternalServerError"} 
   
-  /{username}/media/{photo-id}/likes:
+  /users/{username}/media/{photo-id}/likes/:
     parameters:
       - $ref: "#/components/parameters/photo-id"
       - $ref: "#/components/parameters/username"
@@ -377,7 +392,7 @@ paths:
       tags: ["likes"]
       summary: Returns likes
       description: Returns a list of the users that like the photo with photo-id given, 
-        posted by username in path.
+        posted by username in path, if user authenticated is not banned by username.
       operationId: getLikes
       responses:
         "200":
@@ -390,7 +405,7 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /{username}/media/{photo-id}/likes/{userLike}/:
+  /users/{username}/media/{photo-id}/likes/{userLike}/:
     parameters:
       - $ref: "#/components/parameters/username"
       - $ref: "#/components/parameters/photo-id"
@@ -402,7 +417,7 @@ paths:
       summary: Likes the photo
       description: |- 
         The user authenticated {userLike} sets a like to the photo with photo-id given, 
-        posted by username {username} in path.
+        posted by username {username} in path; if userLike is not banned by username.
       operationId: likePhoto
       responses:
         "201":
@@ -422,7 +437,7 @@ paths:
       summary: Unlikes the photo
       description: |-
         The user authenticated {userLike} if liked the photo with photo-id given, 
-        posted by username in path {username}, removes the like.
+        posted by username in path {username}, removes the like; if userLike is not banned by username.
       operationId: unlikePhoto
       responses:
         "204":
@@ -432,7 +447,7 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /{username}/media/{photo-id}/comments:
+  /users/{username}/media/{photo-id}/comments/:
     parameters:
       - $ref: "#/components/parameters/photo-id"
       - $ref: "#/components/parameters/username"
@@ -442,7 +457,7 @@ paths:
         - bearerAuth: []
       summary: Returns comments
       description: Returns a list of comments objects relative to the photo with photo-id given, 
-        posted by username in path.
+        posted by username in path; if user authenticated is not banned by username.
       operationId: getComments
       responses:
         "200":
@@ -461,8 +476,8 @@ paths:
       tags: ["comments"]
       summary: Comments the photo
       description: |- 
-        The user authenticated posts a comment to the photo in path with 
-        text given in content. Returns the comment object.
+        The user authenticated posts a comment to the photo in path posted by username with 
+        text given in content; if user authenticated is not banned by username. Returns the comment id.
       operationId: commentPhoto
       requestBody:
         description: The text of the comment (max 250 chars)
@@ -479,13 +494,13 @@ paths:
           description: Commented successfully.
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/comment"}
+              schema: {$ref: "#/components/schemas/id"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /{username}/media/{photo-id}/comments/{comment-id}/:
+  /users/{username}/media/{photo-id}/comments/{comment-id}/:
     parameters:
       - $ref: "#/components/parameters/photo-id"
       - $ref: "#/components/parameters/comment-id"
@@ -496,8 +511,8 @@ paths:
       tags: ["comments"]
       summary: Removes comment
       description: |-
-        If the user authenticated has posted the photo, 
-        comment relative to the one given in path is removed.
+        If the user authenticated has posted the photo with photo-id, 
+        comment relative to comment-id in path is removed.
       operationId: uncommentPhoto
       responses:
         "204":
@@ -506,8 +521,28 @@ paths:
         "401": {$ref: '#/components/responses/UnauthorizedError'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-          
-  /{username}/follow/{userFollow}:
+  
+  /users/{username}/following/:
+    parameters:
+      - $ref: "#/components/parameters/username"
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["follow"]
+      summary: Get following
+      description: Returns the users followed by username; if user authenticated is not banned by username
+      responses:
+        "200":
+          description: Array of usernames
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/userArray"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+
+  /users/{username}/following/{userFollow}/:
     parameters:
       - $ref: "#/components/parameters/username"
       - $ref: "#/components/parameters/userFollow"
@@ -517,7 +552,7 @@ paths:
       tags: ["follow"]
       summary: Follows a user
       description: |-
-        Account authenticated {username} starts follow {userFollow}.
+        Account authenticated {username} starts follow {userFollow}; if userFollow is not banned by username and username is not equal to userFollow.
       operationId: followUser
       responses:
         "201":
@@ -536,7 +571,7 @@ paths:
       tags: ["follow"]
       summary: unfollow
       description: |-
-        If the account authenticated {username} follows {userfolloW} then unfollows.
+        If the account authenticated {username} follows {userfolloW} then unfollows; if userFollow is not banned by username.
       operationId: unfollowUser
       responses:
         "204":
@@ -546,7 +581,27 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
-  /{username}/ban/{userBan}:
+  /users/{username}/followers/:
+    parameters:
+      - $ref: "#/components/parameters/username"
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["follow"]
+      summary: Get followers
+      description: Returns the users that follow username; if user authenticated is not banned by username
+      responses:
+        "200":
+          description: Array of usernames
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/userArray"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+
+  /users/{username}/ban/{userBan}/:
     parameters:
       - $ref: "#/components/parameters/username"
       - $ref: "#/components/parameters/userBan"
@@ -556,7 +611,7 @@ paths:
       tags: ["ban"]
       summary: ban a user
       description: |-
-        User authenticated {username} bans username {userBan},
+        User authenticated {username} bans username {userBan}, if username is not equal to userBan and
         if it doesn't exist returns an error.
       operationId: banUser
       responses:
@@ -586,6 +641,27 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
 
+  /users/{username}/ban/:
+    parameters:
+    - $ref: "#/components/parameters/username"
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["ban"]
+      summary: Get banned
+      description: Returns the users banned by user authenticated (username)
+      operationId: getBanned
+      responses:
+        "200":
+          description: Array of users banned
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/userArray"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: '#/components/responses/UnauthorizedError'}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+
   /stream/:
     get:
       security:
@@ -594,7 +670,7 @@ paths:
       summary: My stream
       description: |
         Returns the stream of the user authenticated.
-        The stream is made by a list of articles with photo, username that posted it likes and comments.
+        The stream is made by a list of articles (photo, username that posted it likes and comments) relative to all user followed by user in reverse chronological order.
       operationId: getMyStream
       responses:
         "200":

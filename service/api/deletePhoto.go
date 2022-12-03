@@ -77,6 +77,5 @@ func (rt *_router) deletePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	// Send the output to the user.
-	w.Header().Set("Content-Type", "image/jpeg")
 	w.WriteHeader(http.StatusNoContent)
 }

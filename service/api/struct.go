@@ -38,6 +38,12 @@ type Profile struct {
 	Following []string `json:"following"`
 }
 
+type Article struct {
+	Ph       Photo
+	Likes    []string
+	Comments []Comment
+}
+
 // FromDatabase populates the struct with data from the database, overwriting all values.
 // You might think this is code duplication, which is correct. However, it's "good" code duplication because it allows
 // us to uncouple the database and API packages.

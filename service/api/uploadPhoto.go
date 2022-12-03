@@ -17,14 +17,17 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 	username := ps.ByName("username")
 
 	// Get User relative to username given in path if exists
-	var user User
-	user.Username = username
-	if !user.IsValid() {
-		// Here we validated the user structure content (username), and we
-		// discovered that the username data is not valid.
+	dbuserPath, errPa := rt.db.GetUserFromUsername(username)
+	if errPa != nil {
+		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
+		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
+		ctx.Logger.WithError(errPa).Error("can't get the user")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if dbuserPath == nil {
+		// The user does not exists, authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusBadRequest)
-		// fmt.Println("[-] Username in path is not valid")
 		return
 	}
 
@@ -48,7 +51,7 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// The authentication and the user in path are valid.
 	// Check if user authenticated matches to the one in path
-	if dbuser.Username != user.Username {
+	if dbuser.Username != username {
 		// User in path is different from the one authenticated
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
@@ -65,14 +68,14 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	defer photoFile.Close()
-
+	// fmt.Println(filepath.Ext(fileHeader.Filename))
 	// read image got into a byte array
 	fileBytes, err := io.ReadAll(photoFile)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
-
-	imageID, err := rt.db.CreateMedia(dbuser.ID, photoCaption, fileBytes)
+	imageID, err := rt.db.CreateMedia(dbuser.Username, photoCaption, fileBytes)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

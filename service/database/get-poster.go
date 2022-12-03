@@ -1,7 +1,7 @@
 package database
 
 func (db *appdbimpl) GetImagePoster(photoid uint64) (string, error) {
-	rows, err := db.c.Query(`SELECT users.username FROM users, media WHERE media.id=? and users.ID=media.username;`, photoid)
+	rows, err := db.c.Query(`SELECT username FROM media WHERE media.id=?;`, photoid)
 
 	if err != nil {
 		return "", err

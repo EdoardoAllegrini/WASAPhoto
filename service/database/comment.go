@@ -1,6 +1,6 @@
 package database
 
-func (db *appdbimpl) Comment(photoid uint64, username uint64, comment string) (uint64, error) {
+func (db *appdbimpl) Comment(photoid uint64, username string, comment string) (uint64, error) {
 	res, err := db.c.Exec(`INSERT INTO comments (image, username, comment) VALUES (?, ?, ?);`,
 		photoid, username, comment)
 	if err != nil {

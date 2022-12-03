@@ -3,7 +3,7 @@ package database
 import "fmt"
 
 func (db *appdbimpl) GetComments(photoid uint64) ([]Comment, error) {
-	rows, err := db.c.Query(`SELECT * FROM comments WHERE image=?;`, photoid)
+	rows, err := db.c.Query(`SELECT id, image, username, comment, timestamp FROM comments WHERE image=?;`, photoid)
 	if err != nil {
 		return nil, err
 	}

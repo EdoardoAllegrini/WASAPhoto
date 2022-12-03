@@ -1,6 +1,6 @@
 package database
 
-func (db *appdbimpl) CreateBan(username uint64, ban uint64) error {
+func (db *appdbimpl) CreateBan(username string, ban string) error {
 	_, err := db.c.Exec(`INSERT INTO ban (username, ban) VALUES (?, ?)`, username, ban)
 	if err != nil {
 		if err.Error() == "UNIQUE constraint failed: ban.username, ban.ban" {

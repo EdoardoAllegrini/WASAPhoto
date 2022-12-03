@@ -27,20 +27,25 @@ func (rt *_router) banUser(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	userBan := ps.ByName("userBan")
-	dbuserFo, errFo := rt.db.GetUserFromUsername(userBan)
-	if errFo != nil {
+	dbuserBa, errBa := rt.db.GetUserFromUsername(userBan)
+	if errBa != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
 		ctx.Logger.WithError(err).Error("can't get the user")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserFo == nil {
+	} else if dbuserBa == nil {
 		// The user does not exists.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
+	if userBan == username {
+		// Can't ban yourself
+		// Reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	// Get Authentication Token from Header
 	auth_token := parseAuthToken(r)
 
@@ -71,14 +76,7 @@ func (rt *_router) banUser(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
-	if userBan == username {
-		// Can't ban yourself
-		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	err = rt.db.CreateBan(dbuser.ID, dbuserFo.ID)
+	err = rt.db.CreateBan(dbuser.Username, dbuserBa.Username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
@@ -90,5 +88,5 @@ func (rt *_router) banUser(w http.ResponseWriter, r *http.Request, ps httprouter
 	// Send the output to the user.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(dbuserFo.Username)
+	_ = json.NewEncoder(w).Encode(dbuserBa.Username)
 }

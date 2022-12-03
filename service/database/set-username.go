@@ -3,7 +3,7 @@ package database
 // SetName is an example that shows you how to execute insert/update
 func (db *appdbimpl) SetMyUserName(oldUser User, newusername string) (*User, error) {
 	newidentifier := "ID_" + newusername
-	res, err := db.c.Exec("UPDATE users SET username=?, identifier=? WHERE id=?", newusername, newidentifier, oldUser.ID)
+	res, err := db.c.Exec("UPDATE users SET username=?, identifier=? WHERE username=?", newusername, newidentifier, oldUser.Username)
 	if err != nil {
 		if err.Error() == "UNIQUE constraint failed: users.identifier" {
 			return nil, ErrUsernameNotAvailable
@@ -17,5 +17,5 @@ func (db *appdbimpl) SetMyUserName(oldUser User, newusername string) (*User, err
 		// If we didn't delete any row, then the fountain didn't exist
 		return nil, ErrUserDoesNotExist
 	}
-	return &User{ID: oldUser.ID, Username: newusername, Identifier: newidentifier}, nil
+	return &User{Username: newusername, Identifier: newidentifier}, nil
 }

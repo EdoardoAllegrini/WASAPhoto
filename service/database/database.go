@@ -41,7 +41,6 @@ var ErrUsernameNotAvailable = errors.New("username is not available")
 var ErrImageDoesNotExist = errors.New("image does not exist")
 
 type User struct {
-	ID         uint64 `json:"id"`
 	Username   string `json:"username"`
 	Identifier string `json:"identifier"`
 }
@@ -49,9 +48,23 @@ type User struct {
 type Comment struct {
 	ID        uint64 `json:"id"`
 	Image     uint64 `json:"image"`
-	User      uint64 `json:"username"`
+	User      string `json:"username"`
 	Text      string `json:"text"`
 	Timestamp string `json:"timestamp"`
+}
+
+type Photo struct {
+	ID        uint64
+	URL       string
+	User      string
+	Timestamp string
+	Caption   string
+}
+
+type Article struct {
+	Ph       Photo
+	Likes    []string
+	Comments []Comment
 }
 
 // AppDatabase is the high level interface for the DB
@@ -72,16 +85,19 @@ type AppDatabase interface {
 	SetMyUserName(User, string) (*User, error)
 
 	// CreateMedia inserts the photo and its caption in the db
-	CreateMedia(uint64, string, []byte) (uint64, error)
+	CreateMedia(string, string, []byte) (uint64, error)
 
 	// GetImageFromIDPoster returns the image in the database posted by username with id given, if exists
-	GetImageFromIDPoster(uint64, uint64) ([]byte, error)
+	GetImageFromIDPoster(uint64, string) ([]byte, error)
 
 	// GetImagePoster returns the username of the user that posted photo with id given, if exists
 	GetImagePoster(uint64) (string, error)
 
 	// CheckImagePoster returns true if poster posted image, else false
-	CheckImagePoster(uint64, uint64) (bool, error)
+	CheckImagePoster(uint64, string) (bool, error)
+
+	// CheckBanned returns true if username has banned userBanned
+	CheckBanned(string, string) (bool, error)
 
 	// GetLikes returns the list of users that like the photo given in input
 	GetLikes(uint64) ([]string, error)
@@ -90,40 +106,46 @@ type AppDatabase interface {
 	DeleteImage(uint64) error
 
 	// SetLike is a function that let user relative to userLike set a like to the photo as photo-id posted by user given in path
-	SetLike(uint64, uint64) error
+	SetLike(uint64, string) error
 
 	// SetLike is a function that let user relative to userLike remove the like to the photo as photo-id posted by user given in path
-	RemoveLike(uint64, uint64) error
+	RemoveLike(uint64, string) error
 
 	// CreateFollow is a function that adds a new follower (userFollow) to username profile
-	CreateFollow(uint64, uint64) error
+	CreateFollow(string, string) error
 
 	// RemoveFollow is a function that removes the follower (userFollow) to username profile
-	RemoveFollow(uint64, uint64) error
+	RemoveFollow(string, string) error
 
 	// GetFollowers returns the list of users followed by username
-	GetFollowing(uint64) ([]string, error)
+	GetFollowing(string) ([]string, error)
 
 	// GetFollowers returns the list of users that follow username
-	GetFollowers(uint64) ([]string, error)
+	GetFollowers(string) ([]string, error)
 
 	// CreateBan is a function that adds userFollow to users banned by username
-	CreateBan(uint64, uint64) error
+	CreateBan(string, string) error
 
 	// RemoveBan is a function that removes the banned userFollow to username banned users
-	RemoveBan(uint64, uint64) error
+	RemoveBan(string, string) error
 
 	// GetBanned returns the list of users banned by username
-	GetBanned(uint64) ([]string, error)
+	GetBanned(string) ([]string, error)
 
 	// Comment adds a comment to the photo given, returns the id of the comment
-	Comment(uint64, uint64, string) (uint64, error)
+	Comment(uint64, string, string) (uint64, error)
 
 	// GetComments returns all the comment of the photo given
 	GetComments(uint64) ([]Comment, error)
 
 	// RemoveComment removes the comment given from the photo in path
 	RemoveComment(uint64) error
+
+	// GetPhotos returns the photos in reverse chronological order of the user given in input
+	GetPhotos(string) ([]Photo, error)
+
+	// GetStream returns the list of articles (photo, comments and likes) of all users in input in reverse chronological order
+	GetStream([]string) ([]Article, error)
 
 	Ping() error
 }
@@ -143,8 +165,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 	var tableName string
 
 	// db.QueryRow(`DROP TABLE users;`).Scan(&tableName)
-	// return nil, nil
-
+	// db.QueryRow(`DROP TABLE media;`).Scan(&tableName)
 	// db.QueryRow(`DROP TABLE likes;`).Scan(&tableName)
 	// db.QueryRow(`DROP TABLE follow;`).Scan(&tableName)
 	// db.QueryRow(`DROP TABLE ban;`).Scan(&tableName)
@@ -154,7 +175,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE users (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, identifier TEXT NOT NULL UNIQUE);`
+		sqlStmt := `CREATE TABLE users (username TEXT NOT NULL PRIMARY KEY, identifier TEXT NOT NULL UNIQUE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -163,7 +184,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='media';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE media (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username INTEGER NOT NULL, caption TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, image BLOB NOT NULL, FOREIGN KEY (username) REFERENCES users(id));`
+		sqlStmt := `CREATE TABLE media (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, caption TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, image BLOB NOT NULL, FOREIGN KEY (username) REFERENCES users(username));`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -172,7 +193,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='likes';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE likes (image INTEGER NOT NULL, username INTEGER NOT NULL, PRIMARY KEY (image, username), FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE);`
+		sqlStmt := `CREATE TABLE likes (image INTEGER NOT NULL, username TEXT NOT NULL, PRIMARY KEY (image, username), FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -181,7 +202,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='follow';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE follow (username INTEGER NOT NULL, follow INTEGER NOT NULL, PRIMARY KEY (username, follow), FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (follow) REFERENCES users(id) ON DELETE CASCADE);`
+		sqlStmt := `CREATE TABLE follow (username TEXT NOT NULL, follow TEXT NOT NULL, PRIMARY KEY (username, follow), FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE, FOREIGN KEY (follow) REFERENCES users(username) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -190,7 +211,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='ban';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE ban (username INTEGER NOT NULL, ban INTEGER NOT NULL, PRIMARY KEY (username, ban), FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (ban) REFERENCES users(id) ON DELETE CASCADE);`
+		sqlStmt := `CREATE TABLE ban (username TEXT NOT NULL, ban TEXT NOT NULL, PRIMARY KEY (username, ban), FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE, FOREIGN KEY (ban) REFERENCES users(username) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -199,7 +220,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comments';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE comments (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, image INTEGER NOT NULL, username INTEGER NOT NULL, comment TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(id) ON DELETE CASCADE);`
+		sqlStmt := `CREATE TABLE comments (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, image INTEGER NOT NULL, username TEXT NOT NULL, comment TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)

@@ -11,7 +11,6 @@ const (
 )
 
 type User struct {
-	ID         uint64 `json:"id"`
 	Username   string `json:"username"`
 	Identifier string `json:"identifier"`
 }
@@ -19,9 +18,24 @@ type User struct {
 type Comment struct {
 	ID        uint64 `json:"id"`
 	Image     uint64 `json:"image"`
-	User      uint64 `json:"username"`
+	User      string `json:"username"`
 	Text      string `json:"text"`
 	Timestamp string `json:"timestamp"`
+}
+
+type Photo struct {
+	ID        uint64 `json:"id"`
+	URL       string `json:"url"`
+	User      string `json:"username"`
+	Timestamp string `json:"timestamp"`
+	Caption   string `json:"caption"`
+}
+
+type Profile struct {
+	User      string   `json:"username"`
+	Photos    []Photo  `json:"photos"`
+	Followers []string `json:"followers"`
+	Following []string `json:"following"`
 }
 
 // FromDatabase populates the struct with data from the database, overwriting all values.
@@ -33,7 +47,6 @@ type Comment struct {
 // Also, in this way the database package is freely usable by other packages without the assumption that structs from
 // the database should somehow be JSON-serializable (or, in general, serializable).
 func (u *User) FromDatabase(user database.User) {
-	u.ID = user.ID
 	u.Username = user.Username
 	u.Identifier = user.Identifier
 }
@@ -41,7 +54,6 @@ func (u *User) FromDatabase(user database.User) {
 // ToDatabase returns the user in a database-compatible representation
 func (u *User) ToDatabase() database.User {
 	return database.User{
-		ID:         u.ID,
 		Username:   u.Username,
 		Identifier: u.Identifier,
 	}
@@ -49,4 +61,12 @@ func (u *User) ToDatabase() database.User {
 func (u *User) IsValid() bool {
 	r, _ := regexp.MatchString(UsernamePattern, u.Username)
 	return r && len(u.Username) >= 3 && len(u.Username) <= 16
+}
+
+func (p *Photo) FromDatabase(photo database.Photo) {
+	p.ID = photo.ID
+	p.User = photo.User
+	p.URL = ""
+	p.Caption = photo.Caption
+	p.Timestamp = photo.Timestamp
 }

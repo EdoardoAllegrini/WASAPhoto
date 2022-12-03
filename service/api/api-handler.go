@@ -9,8 +9,10 @@ func (rt *_router) Handler() http.Handler {
 	// Register routes
 	rt.router.POST("/session/", rt.wrap(rt.doLogin))
 	rt.router.PUT("/users/:username/", rt.wrap(rt.setMyUserName))
+	rt.router.GET("/users/:username/", rt.wrap(rt.getUserProfile))
 	rt.router.PUT("/users/:username/media/:photo-id/likes/:userLike/", rt.wrap(rt.likePhoto))
 	rt.router.DELETE("/users/:username/media/:photo-id/likes/:userLike/", rt.wrap(rt.unlikePhoto))
+	rt.router.GET("/stream/", rt.wrap(rt.getMyStream))
 
 	// TO FIX: should be /:username/media
 	rt.router.POST("/users/:username/media/", rt.wrap(rt.uploadPhoto))

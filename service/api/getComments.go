@@ -13,22 +13,6 @@ func (rt *_router) getComments(w http.ResponseWriter, r *http.Request, ps httpro
 	// Get the username in path
 	username := ps.ByName("username")
 
-	dbuser, err := rt.db.GetUserFromUsername(username)
-	if err != nil {
-		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
-		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
-		ctx.Logger.WithError(err).Error("can't get the user")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	} else if dbuser == nil {
-		// The user does not exists.
-		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
-	// photoid := ps.ByName("photo-id")
 	photoid, err := strconv.ParseUint(ps.ByName("photo-id"), 10, 64)
 	if err != nil {
 		// Here we validated the photo-id given in path, and we
@@ -38,7 +22,7 @@ func (rt *_router) getComments(w http.ResponseWriter, r *http.Request, ps httpro
 		// fmt.Println("[-] Photo-id in path is not valid")
 		return
 	}
-	c, err := rt.db.CheckImagePoster(photoid, dbuser.ID)
+	c, err := rt.db.CheckImagePoster(photoid, username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
@@ -70,6 +54,20 @@ func (rt *_router) getComments(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
+	c, errC := rt.db.CheckBanned(username, dbuserAuth.Username)
+	if errC != nil {
+		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
+		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
+		ctx.Logger.WithError(err).Error("can't get the user")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if c {
+		// Username has banned user authenticated
+		// Reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusNotFound)
+		// fmt.Println(dbuser.Username + " banned " + dbuserAuth.Username)
+		return
+	}
 	dblistComment, errLike := rt.db.GetComments(photoid)
 	if errLike != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user

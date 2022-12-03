@@ -58,6 +58,20 @@ func (rt *_router) unfollowUser(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
+	c, errC := rt.db.CheckBanned(dbuser.Username, dbuserAuth.Username)
+	if errC != nil {
+		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
+		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
+		ctx.Logger.WithError(err).Error("can't get the user")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if c {
+		// Username has banned user authenticated
+		// Reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusNotFound)
+		// fmt.Println(dbuser.Username + " banned " + dbuserAuth.Username)
+		return
+	}
 	// Check that user authenticated matches username given in path
 
 	// The authentication and the user in path are valid.
@@ -70,7 +84,7 @@ func (rt *_router) unfollowUser(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	err = rt.db.RemoveFollow(dbuser.ID, dbuserFo.ID)
+	err = rt.db.RemoveFollow(dbuser.Username, dbuserFo.Username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

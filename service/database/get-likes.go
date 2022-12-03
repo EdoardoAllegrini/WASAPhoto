@@ -1,7 +1,7 @@
 package database
 
 func (db *appdbimpl) GetLikes(photoid uint64) ([]string, error) {
-	rows, err := db.c.Query(`SELECT users.username FROM users, likes WHERE likes.image=? and users.ID=likes.username;`, photoid)
+	rows, err := db.c.Query(`SELECT username FROM likes WHERE likes.image=?;`, photoid)
 
 	if err != nil {
 		return nil, err

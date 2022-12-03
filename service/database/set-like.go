@@ -1,6 +1,6 @@
 package database
 
-func (db *appdbimpl) SetLike(photoid uint64, username uint64) error {
+func (db *appdbimpl) SetLike(photoid uint64, username string) error {
 	_, err := db.c.Exec(`INSERT INTO likes (image, username) VALUES (?, ?);`, photoid, username)
 	if err != nil {
 		if err.Error() == "UNIQUE constraint failed: likes.image, likes.username" {

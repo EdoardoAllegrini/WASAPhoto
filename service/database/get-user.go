@@ -19,7 +19,7 @@ func (db *appdbimpl) GetUser(u User) (*User, error) {
 		ret = &tmp
 	}
 
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
@@ -45,7 +45,7 @@ func (db *appdbimpl) GetUserFromUsername(username string) (*User, error) {
 		ret = &tmp
 	}
 
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
@@ -71,7 +71,7 @@ func (db *appdbimpl) GetUserFromIdentifier(identifier string) (*User, error) {
 		ret = &tmp
 	}
 
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 	return ret, nil

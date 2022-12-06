@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -58,13 +57,19 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		// fmt.Println("[+] Users are different")
 		return
 	}
-	r.ParseMultipartForm(MaxMemory)
+	err = r.ParseMultipartForm(MaxMemory)
+	if err != nil {
+		// Request not parsable
+		// Reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	photoCaption := r.FormValue("photoCaption")
 	photoFile, _, err := r.FormFile("photoFile")
 
 	if err != nil {
-		fmt.Println("Error Retrieving the File")
-		fmt.Println(err)
+		// The image file is not valid
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	defer photoFile.Close()
@@ -72,7 +77,8 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 	// read image got into a byte array
 	fileBytes, err := io.ReadAll(photoFile)
 	if err != nil {
-		fmt.Println(err)
+		// The image file is not valid
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	imageID, err := rt.db.CreateMedia(dbuser.Username, photoCaption, fileBytes)

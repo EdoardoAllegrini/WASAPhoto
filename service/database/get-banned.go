@@ -19,7 +19,7 @@ func (db *appdbimpl) GetBanned(username string) ([]string, error) {
 		ret = append(ret, tmp)
 	}
 
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 

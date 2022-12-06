@@ -8,5 +8,9 @@ func (db *appdbimpl) CheckBanned(username string, userBanned string) (bool, erro
 	}
 	defer func() { _ = check.Close() }()
 
+	if err = check.Err(); err != nil {
+		return false, err
+	}
+
 	return check.Next(), nil
 }

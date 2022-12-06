@@ -7,6 +7,8 @@ func (db *appdbimpl) CheckImagePoster(photoid uint64, username string) (bool, er
 		return false, err
 	}
 	defer func() { _ = check.Close() }()
-
+	if err = check.Err(); err != nil {
+		return false, err
+	}
 	return check.Next(), nil
 }

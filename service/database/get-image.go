@@ -19,7 +19,7 @@ func (db *appdbimpl) GetImageFromIDPoster(photoid uint64, username string) ([]by
 		ret = tmp
 	}
 
-	if rows.Err() != nil {
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 

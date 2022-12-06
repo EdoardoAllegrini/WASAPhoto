@@ -86,12 +86,6 @@ components:
       required: true
 
   schemas:
-    posinteger:
-      description: A positive integer
-      title: Positive integer
-      type: integer
-      minimum: 0
-      example: 1
     username:
       title: Username
       description: The username
@@ -531,6 +525,7 @@ paths:
       tags: ["follow"]
       summary: Get following
       description: Returns the users followed by username; if user authenticated is not banned by username
+      operationId: getFollowing
       responses:
         "200":
           description: Array of usernames
@@ -590,6 +585,7 @@ paths:
       tags: ["follow"]
       summary: Get followers
       description: Returns the users that follow username; if user authenticated is not banned by username
+      operationId: getFollowers
       responses:
         "200":
           description: Array of usernames

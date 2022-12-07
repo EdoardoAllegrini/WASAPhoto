@@ -1,14 +1,12 @@
 package database
 
-import "strconv"
+import (
+	"strconv"
+)
 
-func (db *appdbimpl) GetStream(followed []string) ([]Article, error) {
-	var qu string = "SELECT media.id, media.username, media.caption, media.timestamp FROM media WHERE media.username IN ("
-	for i := 0; i < len(followed)-1; i++ {
-		qu = qu + "'" + followed[i] + "', "
-	}
-	qu += "'" + followed[len(followed)-1] + "') ORDER BY timestamp DESC;"
-	rows, err := db.c.Query(qu)
+func (db *appdbimpl) GetStream(user string) ([]Article, error) {
+	qu := "SELECT media.id, media.username, media.caption, media.timestamp FROM media, follow WHERE follow.username=? and media.username=follow.follow and NOT EXISTS (select * from ban where ban.username=follow.follow and ban.ban=follow.username) ORDER BY timestamp DESC;"
+	rows, err := db.c.Query(qu, user)
 
 	if err != nil {
 		return nil, err
@@ -30,12 +28,12 @@ func (db *appdbimpl) GetStream(followed []string) ([]Article, error) {
 		if err != nil {
 			return nil, err
 		}
-		a.Likes = likes
+		a.Likes = len(likes)
 		comments, err := db.GetComments(tmp.ID)
 		if err != nil {
 			return nil, err
 		}
-		a.Comments = comments
+		a.Comments = len(comments)
 		ret = append(ret, a)
 	}
 

@@ -86,6 +86,12 @@ components:
       required: true
 
   schemas:
+    posinteger:
+      description: A positive integer
+      title: Positive integer
+      type: integer
+      minimum: 0
+      example: 1
     username:
       title: Username
       description: The username
@@ -158,8 +164,8 @@ components:
         A photo with the user that posted it, likes and comments.
       properties:
         photo: {$ref: "#/components/schemas/photo"}
-        likes: {$ref: "#/components/schemas/userArray"}
-        comments: {$ref: "#/components/schemas/commentArray"}
+        likes: {$ref: "#/components/schemas/posinteger"}
+        comments: {$ref: "#/components/schemas/posinteger"}
     commentArray:
       description: An array of comments
       type: array
@@ -178,6 +184,7 @@ components:
           items: {$ref: "#/components/schemas/photo"}
           minItems: 0
           maxItems: 1000
+        n_photos: {$ref: "#/components/schemas/posinteger"}
         stats: {$ref: "#/components/schemas/profileStats"}
     comment:
       title: Comment

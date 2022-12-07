@@ -11,7 +11,15 @@ import (
 func (rt *_router) getFollowing(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Get the username in path
 	username := ps.ByName("username")
-
+	var u User
+	u.Username = username
+	// Check to avoid sql injection
+	if !u.IsValid() {
+		// Here we validated the user structure content (username), and we
+		// discovered that the username data is not valid.
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	dbuser, err := rt.db.GetUserFromUsername(username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
@@ -41,6 +49,8 @@ func (rt *_router) getFollowing(w http.ResponseWriter, r *http.Request, ps httpr
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	// Check if username in path has banned user authenticated
+	// (done with separated query cause otherwise I can't higlight the difference between profile blank and user banned which all returns rows empty)
 
 	c, errC := rt.db.CheckBanned(dbuser.Username, dbuserAuth.Username)
 	if errC != nil {

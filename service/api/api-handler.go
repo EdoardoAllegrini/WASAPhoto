@@ -16,7 +16,7 @@ func (rt *_router) Handler() http.Handler {
 
 	// TO FIX: should be /:username/media
 	rt.router.POST("/users/:username/media/", rt.wrap(rt.uploadPhoto))
-	rt.router.GET("/users/:username/media/:photo-id/", rt.wrap(rt.getImage))
+	rt.router.GET("/users/:username/media/:photo-id/", rt.wrap(rt.getPhoto))
 	rt.router.DELETE("/users/:username/media/:photo-id/", rt.wrap(rt.deletePhoto))
 	rt.router.GET("/users/:username/media/:photo-id/likes/", rt.wrap(rt.getLikes))
 	rt.router.PUT("/users/:username/following/:userFollow/", rt.wrap(rt.followUser))

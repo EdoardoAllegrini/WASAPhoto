@@ -15,24 +15,16 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 
 	// Get the username in path
 	username := ps.ByName("username")
-
-	// Get User relative to username given in path if exists
-	var user User
-	user.Username = username
-	if !user.IsValid() {
+	var u User
+	u.Username = username
+	// Check to avoid sql injection
+	if !u.IsValid() {
 		// Here we validated the user structure content (username), and we
 		// discovered that the username data is not valid.
-		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
-		// fmt.Println("[-] Username in path is not valid")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-
-	// Get Authentication Token from Header
-	auth_token := parseAuthToken(r)
-
-	// Check if authentication is valid
-	dbuser, err := rt.db.GetUserFromIdentifier(auth_token)
+	dbuser, err := rt.db.GetUserFromUsername(username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
@@ -40,22 +32,32 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else if dbuser == nil {
-		// The user does not exists, authentication not valid.
+		// The user does not exists.
+		// Reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	// Get Authentication Token from Header
+	auth_token := parseAuthToken(r)
+
+	// Check if authentication is valid for username in path
+	dbuserAuth, errAuth := rt.db.GetUserFromIdentifier(auth_token)
+	if errAuth != nil {
+		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
+		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
+		ctx.Logger.WithError(err).Error("can't get the user")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if dbuserAuth == nil || dbuserAuth.Username != dbuser.Username {
+		// Authentication not valid
+		// User authenticated doesn't exist or doesn't matches user in path.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	// The authentication and the user in path are valid.
-	// Check if user authenticated matches to the one in path
-	if dbuser.Username != user.Username {
-		// User in path is different from the one authenticated
-		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusUnauthorized)
-		// fmt.Println("[+] Users are different")
-		return
-	}
-	// Check if username given in body is valid and available
+	// Check if username given in body is valid
 	var userBody User
 	err = json.NewDecoder(r.Body).Decode(&userBody)
 
@@ -72,11 +74,6 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	dbNewUser, err := rt.db.SetMyUserName(*dbuser, userBody.Username)
-	if errors.Is(err, database.ErrUserDoesNotExist) {
-		// The username in path does not exist, reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
 	if errors.Is(err, database.ErrUsernameNotAvailable) {
 		// The username in body is not available, reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusConflict)

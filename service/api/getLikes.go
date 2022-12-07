@@ -10,10 +10,17 @@ import (
 )
 
 func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
 	// Get the username in path
 	username := ps.ByName("username")
-
+	var u User
+	u.Username = username
+	// Check to avoid sql injection
+	if !u.IsValid() {
+		// Here we validated the user structure content (username), and we
+		// discovered that the username data is not valid.
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	dbuser, err := rt.db.GetUserFromUsername(username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
@@ -24,7 +31,7 @@ func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httproute
 	} else if dbuser == nil {
 		// The user does not exists.
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -46,6 +53,8 @@ func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 
+	// Check if username in path has banned user authenticated
+	// (done with separated query cause otherwise I can't higlight the difference between profile blank and user banned which all returns rows empty)
 	c, errC := rt.db.CheckBanned(dbuser.Username, dbuserAuth.Username)
 	if errC != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
@@ -61,8 +70,6 @@ func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 
-	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
-	// photoid := ps.ByName("photo-id")
 	photoid, err := strconv.ParseUint(ps.ByName("photo-id"), 10, 64)
 	if err != nil {
 		// Here we validated the photo-id given in path, and we
@@ -72,7 +79,7 @@ func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httproute
 		// fmt.Println("[-] Photo-id in path is not valid")
 		return
 	}
-
+	// Query not unified in GetLikes because otherwise I can't distinguish between photo with no like and photo not in the db
 	c, err = rt.db.CheckImagePoster(photoid, dbuser.Username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
@@ -83,7 +90,7 @@ func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httproute
 	} else if !c {
 		// Photo with photo-id is not present in the db as a photo posted by username in path
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 

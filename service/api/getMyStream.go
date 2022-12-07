@@ -29,16 +29,7 @@ func (rt *_router) getMyStream(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	dblist, err := rt.db.GetFollowing(dbuserAuth.Username)
-	if err != nil {
-		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
-		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
-		ctx.Logger.WithError(err).Error("can't get the user Auth")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	dbstream, err := rt.db.GetStream(dblist)
+	dbstream, err := rt.db.GetStream(dbuserAuth.Username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

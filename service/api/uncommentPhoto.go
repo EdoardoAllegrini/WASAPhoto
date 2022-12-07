@@ -11,7 +11,15 @@ import (
 func (rt *_router) uncommentPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Get the username in path
 	username := ps.ByName("username")
-
+	var u User
+	u.Username = username
+	// Check to avoid sql injection
+	if !u.IsValid() {
+		// Here we validated the user structure content (username), and we
+		// discovered that the username data is not valid.
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	dbuser, err := rt.db.GetUserFromUsername(username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
@@ -22,12 +30,10 @@ func (rt *_router) uncommentPhoto(w http.ResponseWriter, r *http.Request, ps htt
 	} else if dbuser == nil {
 		// The user does not exists.
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	// TO FIX: after fix in api-handler uncomment following 2 line and delete 3rd
-	// photoid := ps.ByName("photo-id")
 	photoid, err := strconv.ParseUint(ps.ByName("photo-id"), 10, 64)
 	if err != nil {
 		// Here we validated the photo-id given in path, and we
@@ -62,24 +68,13 @@ func (rt *_router) uncommentPhoto(w http.ResponseWriter, r *http.Request, ps htt
 		ctx.Logger.WithError(err).Error("can't get the user Auth")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil {
-		// The user does not exists, authentication not valid.
+	} else if dbuserAuth == nil || dbuserAuth.Username != username {
+		// Authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	// Check that user authenticated matches userLike given in path
-
-	// The authentication and the user in path are valid.
-	// Check if user authenticated matches to the one in path
-	if dbuserAuth.Username != username {
-		// User in path is different from the one authenticated
-		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusUnauthorized)
-		// fmt.Println("[+] Users are different")
-		return
-	}
 	commentid, err := strconv.ParseUint(ps.ByName("comment-id"), 10, 64)
 	if err != nil {
 		// Here we validated the photo-id given in path, and we

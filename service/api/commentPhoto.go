@@ -32,7 +32,7 @@ func (rt *_router) commentPhoto(w http.ResponseWriter, r *http.Request, ps httpr
 	} else if !c {
 		// Photo with photo-id is not present in the db as a photo posted by username in path
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -54,6 +54,8 @@ func (rt *_router) commentPhoto(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
+	// Check if username in path has banned user authenticated
+	// (done with separated query cause otherwise I can't higlight the difference between profile blank and user banned which all returns rows empty)
 	c, errC := rt.db.CheckBanned(username, dbuserAuth.Username)
 	if errC != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user

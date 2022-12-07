@@ -11,7 +11,15 @@ import (
 func (rt *_router) unlikePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Get the username in path
 	username := ps.ByName("username")
-
+	var u User
+	u.Username = username
+	// Check to avoid sql injection
+	if !u.IsValid() {
+		// Here we validated the user structure content (username), and we
+		// discovered that the username data is not valid.
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	dbuser, err := rt.db.GetUserFromUsername(username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
@@ -22,7 +30,7 @@ func (rt *_router) unlikePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 	} else if dbuser == nil {
 		// The user does not exists.
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -47,7 +55,7 @@ func (rt *_router) unlikePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 	} else if !c {
 		// Photo with photo-id is not present in the db as a photo posted by username in path
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -77,25 +85,15 @@ func (rt *_router) unlikePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		ctx.Logger.WithError(err).Error("can't get the user Auth")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil {
-		// The user does not exists, authentication not valid.
+	} else if dbuserAuth == nil || dbuserAuth.Username != userLike {
+		// Authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	// Check that user authenticated matches userLike given in path
-
-	// The authentication and the user in path are valid.
-	// Check if user authenticated matches to the one in path
-	if dbuserAuth.Username != userLike {
-		// User in path is different from the one authenticated
-		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusUnauthorized)
-		// fmt.Println("[+] Users are different")
-		return
-	}
-
+	// Check if username in path has banned user authenticated
+	// (done with separated query cause otherwise I can't higlight the difference between profile blank and user banned which all returns rows empty)
 	c, errC := rt.db.CheckBanned(dbuser.Username, dbuserAuth.Username)
 	if errC != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user

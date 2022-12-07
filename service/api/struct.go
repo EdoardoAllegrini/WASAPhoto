@@ -32,8 +32,9 @@ type Photo struct {
 }
 
 type Profile struct {
-	User      string   `json:"username"`
-	Photos    []Photo  `json:"photos"`
+	User      string  `json:"username"`
+	Photos    []Photo `json:"photos"`
+	N_Photos  int
 	Followers []string `json:"followers"`
 	Following []string `json:"following"`
 }

@@ -14,7 +14,15 @@ const MaxMemory int64 = 1000000
 func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Get the username in path
 	username := ps.ByName("username")
-
+	var u User
+	u.Username = username
+	// Check to avoid sql injection
+	if !u.IsValid() {
+		// Here we validated the user structure content (username), and we
+		// discovered that the username data is not valid.
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	// Get User relative to username given in path if exists
 	dbuserPath, errPa := rt.db.GetUserFromUsername(username)
 	if errPa != nil {
@@ -26,7 +34,7 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 	} else if dbuserPath == nil {
 		// The user does not exists, authentication not valid.
 		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -41,22 +49,13 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		ctx.Logger.WithError(err).Error("can't get the user")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuser == nil {
-		// The user does not exists, authentication not valid.
+	} else if dbuser == nil || dbuser.Username != username{
+		// Authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	// The authentication and the user in path are valid.
-	// Check if user authenticated matches to the one in path
-	if dbuser.Username != username {
-		// User in path is different from the one authenticated
-		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusUnauthorized)
-		// fmt.Println("[+] Users are different")
-		return
-	}
 	err = r.ParseMultipartForm(MaxMemory)
 	if err != nil {
 		// Request not parsable

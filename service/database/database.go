@@ -36,7 +36,6 @@ import (
 	"fmt"
 )
 
-var ErrUserDoesNotExist = errors.New("user does not exist")
 var ErrUsernameNotAvailable = errors.New("username is not available")
 var ErrImageDoesNotExist = errors.New("image does not exist")
 
@@ -61,10 +60,18 @@ type Photo struct {
 	Caption   string
 }
 
+type Profile struct {
+	User      string  `json:"username"`
+	Photos    []Photo `json:"photos"`
+	N_Photos  int
+	Followers []string `json:"followers"`
+	Following []string `json:"following"`
+}
+
 type Article struct {
 	Ph       Photo
-	Likes    []string
-	Comments []Comment
+	Likes    int
+	Comments int
 }
 
 // AppDatabase is the high level interface for the DB
@@ -144,8 +151,11 @@ type AppDatabase interface {
 	// GetPhotos returns the photos in reverse chronological order of the user given in input
 	GetPhotos(string) ([]Photo, error)
 
-	// GetStream returns the list of articles (photo, comments and likes) of all users in input in reverse chronological order
-	GetStream([]string) ([]Article, error)
+	// GetProfile returns the profile of user given as second argument if user authenticated (first argument) is not banned by him
+	GetProfile(string) (*Profile, error)
+
+	// GetStream returns the list of articles  in reverse chronological order (photo, comments and likes) of all users followed by usermame in input
+	GetStream(string) ([]Article, error)
 
 	Ping() error
 }

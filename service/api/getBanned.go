@@ -45,13 +45,12 @@ func (rt *_router) getBanned(w http.ResponseWriter, r *http.Request, ps httprout
 		ctx.Logger.WithError(err).Error("can't get the user Auth")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil || dbuser.Username != dbuserAuth.Username{
+	} else if dbuserAuth == nil || dbuser.Username != dbuserAuth.Username {
 		// The user does not exists, authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
 
 	dblist, err := rt.db.GetBanned(dbuser.Username)
 	if err != nil {

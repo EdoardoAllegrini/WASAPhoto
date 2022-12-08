@@ -39,7 +39,6 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	// Here we can re-use `user` as FromDatabase is overwriting every variabile in the structure.
 	user.FromDatabase(dbnewuser)
 
-
 	// Send the output to the user.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

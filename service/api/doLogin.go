@@ -24,8 +24,6 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	// The user does not exists
 	// Create the user in the database. Note that this function will return a new instance of the user with the
 	// same information.
 	dbnewuser, err := rt.db.CreateUser(user.ToDatabase())

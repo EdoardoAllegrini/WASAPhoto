@@ -37,7 +37,7 @@ export default {
 				<input type="button" @click="doLogin" value="Log in" class="mybtn" />
 			</div>
 			<div v-if="badUsername" class="badReq">
-				Username not valido
+				Username not valid
 			</div>
 		</div>
 

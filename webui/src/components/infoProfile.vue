@@ -4,35 +4,23 @@ export default {
     props: {
         receivedata: Object
     },
+    computed: {
+        getFollowers() {
+            if (this.receivedata.followers == undefined) {return 0}
+            else return this.receivedata.followers.length
+        },
+        getFollowing() {
+            if (this.receivedata.following == undefined) {return 0}
+            else return this.receivedata.following.length
+        }
+    },
     data() {
         return {
-            n_followers: 0,
-            n_following: 0,
-            stateFlw: "",
             userAuth:   {
                 username: "edoardo",
                 identifier: "ID_edoardo"
             }        
         }
-    },
-    methods: {
-        handleFlw() {
-            // TO ASK non ha accesso a receivedata???
-            console.log(this.receivedata)
-            try {
-                this.n_followers = this.receivedata.followers.length
-            }
-            catch {}
-            try {
-                this.n_following = this.receivedata.following.length
-            }
-            catch {}
-            this.userAuth = {
-                username: "edoardo",
-                identifier: "ID_edoardo"
-            }
-            return
-        } 
     },
     mounted() {
     }
@@ -66,11 +54,8 @@ export default {
                 <div class="profile-stats">
 
                     <ul>
-                        <li><span class="profile-stat-count">{{receivedata.N_Photos}}</span> posts</li>
-                        <li v-if="receivedata.followers==undefined"><span class="profile-stat-count">0</span> followers</li>
-                        <li v-else><span class="profile-stat-count">{{receivedata.followers.length}}</span> followers</li>
-                        <li v-if="receivedata.following==undefined"><span class="profile-stat-count">0</span> following</li>
-                        <li v-else><span class="profile-stat-count">{{receivedata.following.length}}</span> following</li>
+                        <li><span class="profile-stat-count">{{getFollowers}}</span> followers</li>
+                        <li><span class="profile-stat-count">{{getFollowing}}</span> following</li>
                     </ul>
 
                 </div>

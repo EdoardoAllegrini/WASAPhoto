@@ -31,7 +31,6 @@ export default {
                 });
                 this.sendata = response.data
                 this.found = true
-                // InfoProfile.methods.handleFlw()
             }
             catch (e) {
                 console.log(e)
@@ -44,6 +43,7 @@ export default {
     },
     mounted() {
         this.getProfile()
+        // InfoProfile.methods.handleFlw()
     },
     components: { NavBar, PageNotFound, InfoProfile },
 }

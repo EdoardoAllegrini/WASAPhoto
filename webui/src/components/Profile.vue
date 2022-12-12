@@ -4,10 +4,10 @@ import PageNotFound from './PageNotFound.vue';
 import InfoProfile from './infoProfile.vue';
 
 export default {
-    data: () => {
+    data() {
         return {
-            user: {},
             found: true,
+            sendata: {}
         };
     },
     watch: {
@@ -29,11 +29,12 @@ export default {
                 {
                     headers: { Authorization: `Bearer ID_edoardo` }
                 });
-                this.data = response.data;
-                this.user = this.data
+                this.sendata = response.data
                 this.found = true
+                // InfoProfile.methods.handleFlw()
             }
             catch (e) {
+                console.log(e)
                 if (e.response.status == 404) {
                     this.found = false
                 }
@@ -52,7 +53,7 @@ export default {
 <template>
     <NavBar></NavBar>
     <div v-if="found">
-        <InfoProfile :userAuth="user"></InfoProfile>
+        <InfoProfile :receivedata="sendata"></InfoProfile>
     </div>
     <div v-else>
         <PageNotFound></PageNotFound>

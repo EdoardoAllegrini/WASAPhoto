@@ -2,23 +2,40 @@
 
 export default {
     props: {
-        userAuth: Object
+        receivedata: Object
     },
     data() {
-        var followers = 0, following = 0
-        try {
-            followers = this.userAuth.followers.length
-        }
-        catch {}
-        try {
-            following = this.userAuth.following.length
-        }
-        catch {}
         return {
-            followers,
-            following
+            n_followers: 0,
+            n_following: 0,
+            stateFlw: "",
+            userAuth:   {
+                username: "edoardo",
+                identifier: "ID_edoardo"
+            }        
         }
     },
+    methods: {
+        handleFlw() {
+            // TO ASK non ha accesso a receivedata???
+            console.log(this.receivedata)
+            try {
+                this.n_followers = this.receivedata.followers.length
+            }
+            catch {}
+            try {
+                this.n_following = this.receivedata.following.length
+            }
+            catch {}
+            this.userAuth = {
+                username: "edoardo",
+                identifier: "ID_edoardo"
+            }
+            return
+        } 
+    },
+    mounted() {
+    }
 
 }
 </script>
@@ -32,16 +49,28 @@ export default {
 
                 <div class="profile-user-settings">
 
-                    <h1 class="profile-user-name">{{userAuth.username}}</h1>
+                    <h1 class="profile-user-name">{{receivedata.username}}</h1>
 
                 </div>
-
+                <div class="flw">
+                    <div v-if="userAuth.username==receivedata.username">
+                        Edit
+                    </div>
+                    <div v-else-if="receivedata.followers && receivedata.followers.includes(userAuth.username)">
+                        Following
+                    </div>
+                    <div v-else>
+                        Follow
+                    </div>
+                </div>
                 <div class="profile-stats">
 
                     <ul>
-                        <li><span class="profile-stat-count">{{userAuth.N_Photos}}</span> posts</li>
-                        <li><span class="profile-stat-count">{{followers}}</span> followers</li>
-                        <li><span class="profile-stat-count">{{following}}</span> following</li>
+                        <li><span class="profile-stat-count">{{receivedata.N_Photos}}</span> posts</li>
+                        <li v-if="receivedata.followers==undefined"><span class="profile-stat-count">0</span> followers</li>
+                        <li v-else><span class="profile-stat-count">{{receivedata.followers.length}}</span> followers</li>
+                        <li v-if="receivedata.following==undefined"><span class="profile-stat-count">0</span> following</li>
+                        <li v-else><span class="profile-stat-count">{{receivedata.following.length}}</span> following</li>
                     </ul>
 
                 </div>
@@ -65,7 +94,9 @@ body {
     margin: 0 auto;
     padding: 0 2rem;
 }
-
+.flw {
+    display: inline-block;
+}
 .btn {
     display: inline-block;
     font: inherit;
@@ -91,7 +122,7 @@ body {
     display: inline-block;
     font-size: 1.3rem;
     line-height: 1.5;
-    margin-right: 4rem;
+    margin-right: 1rem;
     cursor: pointer;
 }
 
@@ -106,9 +137,9 @@ body {
 @supports (display: grid) {
     .profile {
         display: grid;
-        grid-template-columns: 1fr 2fr;
+        grid-template-columns: 1fr 2fr 3fr;
         grid-template-rows: repeat(3, auto);
-        grid-column-gap: 3rem;
+        grid-column-gap: 1rem;
         align-items: center;
         position: relative;
         top: 15px;

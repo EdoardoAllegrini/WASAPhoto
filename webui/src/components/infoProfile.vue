@@ -6,25 +6,61 @@ export default {
     },
     computed: {
         getFollowers() {
-            if (this.receivedata.followers == undefined) {return 0}
-            else return this.receivedata.followers.length
+            if (this.receivedata.followers == undefined) {
+                return 0;
+            }
+            else
+                return this.receivedata.followers.length;
         },
         getFollowing() {
-            if (this.receivedata.following == undefined) {return 0}
-            else return this.receivedata.following.length
+            if (this.receivedata.following == undefined) {
+                return 0;
+            }
+            else
+                return this.receivedata.following.length;
         }
     },
     data() {
         return {
-            userAuth:   {
-                username: "edoardo",
-                identifier: "ID_edoardo"
-            }        
-        }
+            username: localStorage.username,
+        };
     },
     mounted() {
+    },
+    methods: {
+        async follow() {
+            try {
+                var path = `/users/${this.username}/following/${this.receivedata.username}/`;
+                let response = await this.$axios.put(path, {}, {
+                    headers: { Authorization: `Bearer ${localStorage.identifier}` }
+                });
+                this.res = response.data;
+            }
+            catch (e) {
+                console.log(e);
+                if (e.response.status == 404) {
+                    this.found = false;
+                }
+            }
+            this.$parent.getProfile();
+        },
+        async unfollow() {
+            try {
+                var path = `/users/${this.username}/following/${this.receivedata.username}/`;
+                let response = await this.$axios.delete(path, {
+                    headers: { Authorization: `Bearer ${localStorage.identifier}` }
+                });
+                this.res = response.data;
+            }
+            catch (e) {
+                console.log(e);
+                if (e.response.status == 404) {
+                    this.found = false;
+                }
+            }
+            this.$parent.getProfile();
+        }
     }
-
 }
 </script>
 
@@ -41,21 +77,21 @@ export default {
 
                 </div>
                 <div class="flw">
-                    <div v-if="userAuth.username==receivedata.username">
-                        Edit
+                    <div v-if="username==receivedata.username">
                     </div>
-                    <div v-else-if="receivedata.followers && receivedata.followers.includes(userAuth.username)">
+                    <button v-else-if="receivedata.followers && receivedata.followers.includes(username)" @click="unfollow" class="btnFlw">
                         Following
-                    </div>
-                    <div v-else>
+                    </button>
+                    <button v-else @click="follow" class="btnFlw">
                         Follow
-                    </div>
+                    </button>
                 </div>
                 <div class="profile-stats">
 
                     <ul>
                         <li><span class="profile-stat-count">{{getFollowers}}</span> followers</li>
                         <li><span class="profile-stat-count">{{getFollowing}}</span> following</li>
+                        <li><span class="profile-stat-count">{{receivedata.N_Photos}}</span> posts</li>
                     </ul>
 
                 </div>
@@ -90,6 +126,26 @@ body {
     color: inherit;
     padding: 0;
     cursor: pointer;
+}
+
+.btnFlw {
+    border-radius: 4px;
+    text-align: center;
+    background: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: block;
+    font-size: 14px;
+    font-weight: var(--font-weight-system-semibold);
+    padding: 5px 9px !important;
+    pointer-events: auto;
+    text-overflow: ellipsis;
+    text-transform: inherit;
+    width: auto;
+    background-color: transparent;
+    color: rgb(var(--ig-secondary-button));
+    font-size: 1rem;
+    font-weight: 300;
 }
 
 .profile-stats {

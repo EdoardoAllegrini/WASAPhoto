@@ -10,32 +10,25 @@ export default {
             sendata: {}
         };
     },
-    watch: {
-        $route() {
-            this.getProfile()
-        }
-    },
     methods: {
         async getProfile() {
+            var path = this.$route.path
+            if (path.slice(-1) != "/") {
+                path+="/"
+            }
             try {
-                var path = this.$route.path
-                if (path.slice(-1) != "/") {
-                    path+="/"
-                }
-                let response = await this.$axios.get(path, 
-                // { 
-                // 	headers: { Authorization: `Bearer ${token}` }
-                // }
+
+                let response = await this.$axios.get(path,
                 {
-                    headers: { Authorization: `Bearer ID_edoardo` }
+                    headers: { Authorization: `Bearer ${localStorage.identifier}` }
                 });
                 this.sendata = response.data
                 this.found = true
             }
             catch (e) {
-                console.log(e)
                 if (e.response.status == 404) {
                     this.found = false
+                    return
                 }
             }
             document.getElementById("searchIn").value = null
@@ -43,7 +36,6 @@ export default {
     },
     mounted() {
         this.getProfile()
-        // InfoProfile.methods.handleFlw()
     },
     components: { NavBar, PageNotFound, InfoProfile },
 }
@@ -51,7 +43,7 @@ export default {
 </script>
 
 <template>
-    <NavBar></NavBar>
+    <NavBar @click="getProfile"></NavBar>
     <div v-if="found">
         <InfoProfile :receivedata="sendata"></InfoProfile>
     </div>

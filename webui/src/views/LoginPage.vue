@@ -17,7 +17,7 @@ export default {
 				this.identifier = response.data;
 				localStorage.identifier = this.identifier
 				localStorage.username = this.username
-				this.$router.push("/stream/"+this.username)
+				this.$router.push({ path: `/stream/${this.username}` })
 			} catch (e) {
 				if (e.code == "ERR_BAD_REQUEST") {
 					this.badUsername = true

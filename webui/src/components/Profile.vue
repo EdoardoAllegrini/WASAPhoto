@@ -43,9 +43,10 @@ export default {
 </script>
 
 <template>
-    <NavBar @click="getProfile"></NavBar>
+    <NavBar></NavBar>
     <div v-if="found">
         <InfoProfile :receivedata="sendata"></InfoProfile>
+        
     </div>
     <div v-else>
         <PageNotFound></PageNotFound>

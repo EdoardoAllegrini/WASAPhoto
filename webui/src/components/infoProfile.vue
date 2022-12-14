@@ -79,10 +79,10 @@ export default {
                 <div class="flw">
                     <div v-if="username==receivedata.username">
                     </div>
-                    <button v-else-if="receivedata.followers && receivedata.followers.includes(username)" @click="unfollow" class="btnFlw">
+                    <button v-else-if="receivedata.followers && receivedata.followers.includes(username)" @click="unfollow" class="btnFlw" id="following">
                         Following
                     </button>
-                    <button v-else @click="follow" class="btnFlw">
+                    <button v-else @click="follow" class="btnFlw" id="follow">
                         Follow
                     </button>
                 </div>
@@ -91,7 +91,7 @@ export default {
                     <ul>
                         <li><span class="profile-stat-count">{{getFollowers}}</span> followers</li>
                         <li><span class="profile-stat-count">{{getFollowing}}</span> following</li>
-                        <li><span class="profile-stat-count">{{receivedata.N_Photos}}</span> posts</li>
+                        <li>Post: <span class="profile-stat-count">{{receivedata.N_Photos}}</span></li>
                     </ul>
 
                 </div>
@@ -148,6 +148,18 @@ body {
     font-weight: 300;
 }
 
+#following {
+    color: black;
+    background-color: transparent;
+    border: 1px solid black;
+}
+
+#follow {
+    background-color: rgb(0, 149, 246);
+    border: 1px solid transparent;
+    color: rgb(255,255,255);
+}
+
 .profile-stats {
     float: left;
     width: 90%;
@@ -184,6 +196,7 @@ body {
         align-items: center;
         position: relative;
         top: 15px;
+        text-align: center;
     }
 }
 

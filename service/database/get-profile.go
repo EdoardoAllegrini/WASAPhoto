@@ -18,7 +18,7 @@ func (db *appdbimpl) GetProfile(userProf string) (*Profile, error) {
 		if err != nil {
 			return nil, err
 		}
-		tmp.URL = "http://localhost:3000/users/" + userProf + "/media/" + strconv.FormatUint(tmp.ID, 10) + "/"
+		tmp.URL = "/users/" + userProf + "/media/" + strconv.FormatUint(tmp.ID, 10) + "/"
 		ret.Photos = append(ret.Photos, tmp)
 		ret.N_Photos++
 	}

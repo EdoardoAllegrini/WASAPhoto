@@ -2,7 +2,10 @@
 export default {
     data() {
         return {
-            url: null
+            url: null,
+            phSel: false,
+            caption: "",
+            image: null
         }
     },
     methods: {
@@ -10,8 +13,24 @@ export default {
             this.$parent.$data.popupPost = false
         },
         handleChange(e) {
-            const file = e.target.files[0];
-            this.url = URL.createObjectURL(file);
+            this.image = e.target.files[0];
+            this.url = URL.createObjectURL(this.image);
+            if (this.url != null) {this.phSel = true}
+            else {this.phSel = false}
+        },
+        async postPhoto() {
+            try {
+                var path = `/users/${localStorage.username}/media/`
+                var formData = new FormData()
+                formData.append("photoCaption", this.caption)
+                formData.append("photoFile", this.image)
+				let response = await this.$axios.post(path, formData);
+				this.some_data = response.data;
+                this.exit()
+			} catch (e) {
+                console.log(e)
+				this.errormsg = e.toString();
+			}
         }
     }
 }
@@ -33,26 +52,44 @@ export default {
                         stroke-width="2"/>
                 </svg>
             </div>
-            <h2>Create a new post</h2>
+            <h2 id="descr">Create a new post</h2>
             <hr>
             <div id="preview">
                 <img v-if="true" :src="url" />
+            </div>
+            <div v-if="phSel" id="capt">
+                <textarea v-model="caption" placeholder="Write a caption..." autocomplete="off" autocorrect="off"></textarea>
             </div>
             <label class="containerPost" id="file">
                 <input type="file" @change="handleChange"/>
                 Select File
             </label>
+            <button v-if="phSel" class="containerPost" id="send" @click="postPhoto">post</button>
         </div>
     </div>
 </template>
 
 <style>
+#capt {
+    position: relative;
+    bottom: 38px;
+    height: 66px;
+}
+#capt textarea {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    border: none;
+    background-color: transparent;
+    overflow: auto;
+    outline: none;
+}
 #preview {
   justify-content: center;
   align-items: center;
   position: relative;
   bottom: 50px;
-  height: 450px;
+  height: 384px;
   text-align: center;
 }
 
@@ -66,19 +103,30 @@ input[type="file"] {
 .containerPost {
     border: 1px solid #ccc;
     cursor: pointer;
-}
-#file {
     background-color: rgb(0, 149, 246);
     border: 1px solid transparent;
     color: rgb(255,255,255);
     border-radius: 4px;
     text-align: center;
     position: relative;
+}
+#send {
+    height: 23px;
+    left: 550px;
+    bottom: 10px;
+    width: 36px;
+    background-color: white;
+    border: 1px solid black;
+    color: black;
+}
+
+#file {
+
     height: 23px;
     bottom: 10px;
     left: 280px;
 }
-h2 {
+#descr {
     text-align: center;
     height: 40px;
     position: relative;

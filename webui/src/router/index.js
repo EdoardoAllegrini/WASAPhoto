@@ -4,6 +4,7 @@ import LoginPage from '../views/LoginPage.vue'
 import Stream from '../views/Stream.vue'
 import Profile from '../components/Profile.vue'
 import PageNotFound from '../components/PageNotFound.vue'
+import Image from '../components/image.vue'
 
 const router = createRouter({
 	history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -12,9 +13,8 @@ const router = createRouter({
 		{path: '/', component: LoginPage},
 		{path: '/stream/:username', component: Stream},
 		{path: '/users/:username', component: Profile},
+		{path: '/users/:username/media/:photo\\-id', component: Image},
 		{path: '/:pathMatch(.*)*', component: PageNotFound},
-		{path: '/link2', component: HomeView},
-		{path: '/some/:id/link', component: HomeView},
 	]
 })
 

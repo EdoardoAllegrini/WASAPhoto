@@ -31,9 +31,7 @@ export default {
         async follow() {
             try {
                 var path = `/users/${this.username}/following/${this.receivedata.username}/`;
-                let response = await this.$axios.put(path, {}, {
-                    headers: { Authorization: `Bearer ${localStorage.identifier}` }
-                });
+                let response = await this.$axios.put(path, {});
                 this.res = response.data;
             }
             catch (e) {
@@ -47,9 +45,7 @@ export default {
         async unfollow() {
             try {
                 var path = `/users/${this.username}/following/${this.receivedata.username}/`;
-                let response = await this.$axios.delete(path, {
-                    headers: { Authorization: `Bearer ${localStorage.identifier}` }
-                });
+                let response = await this.$axios.delete(path);
                 this.res = response.data;
             }
             catch (e) {

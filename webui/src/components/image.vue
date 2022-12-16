@@ -35,13 +35,18 @@ export default {
 </script>
 
 <template>
-    <img id="med" :src="url">
+    <div id="fle">
+        <img id="med" :src="url">
+    </div>
     <div v-if="badr">
         <PageNotFound></PageNotFound>
     </div>
 </template>
 
 <style>
+#fle {
+    position: relative;
+}
 #med {
     position: relative;
     max-height: 800px;

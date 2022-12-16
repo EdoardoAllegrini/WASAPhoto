@@ -9,8 +9,13 @@ export default {
         }
     },
     methods: {
+        clickOutside(event) {
+            if (event.composedPath()['0'].className == 'popup') {this.exit()}
+        },
         exit() {
             this.$parent.$data.popupPost = false
+            document.body.style.overflow = "scroll"
+            return
         },
         handleChange(e) {
             this.image = e.target.files[0];
@@ -27,17 +32,22 @@ export default {
 				let response = await this.$axios.post(path, formData);
 				this.some_data = response.data;
                 this.exit()
+                this.refresh()
+
 			} catch (e) {
                 console.log(e)
 				this.errormsg = e.toString();
 			}
-        }
+        },
+		async refresh() {
+			window.location.reload()
+		}
     }
 }
 </script>
 
 <template>
-    <div class="popup">
+    <div class="popup" @click="clickOutside">
         <div class="inner">
             <slot />
             <div class="close" @click="exit">
@@ -119,7 +129,9 @@ input[type="file"] {
     border: 1px solid black;
     color: black;
 }
-
+#send:hover {
+    background-color: #ccc;
+}
 #file {
 
     height: 23px;

@@ -3,12 +3,34 @@
 export default {
     props: {
         receivedata: Object,
-        images: Array
     },
     data() {
-        console.log(this.images)
         return {
-            data: this.receivedata.N_Photos
+            images: {}
+        }
+    },
+    methods: {
+        async getImage(path) {
+            try {
+                var response = await this.$axios.get(path, { responseType: 'blob' });
+                return URL.createObjectURL(response.data)
+            }
+            catch (e) {
+                console.log(e)
+                if (e.response.status == 404) {
+                    this.badr = true;
+                }
+                return
+            }
+        }
+    },
+    watch: {
+        async receivedata() {
+            for (let p in this.receivedata.photos) {
+                let curr = this.receivedata.photos[p]
+                let url = await this.getImage(curr.URL)
+                this.images[`${curr.ID}`] = url
+            } 
         }
     }
 }
@@ -16,14 +38,36 @@ export default {
 
 <template>
     <div class="gallery">
-        <div v-for="p in images" class="cont">
-            <img :src="p">
+        <div v-for="p in receivedata.photos" class="cont">
+            <a @click="$router.push(p.URL)" class="img">
+                <img :src="images[p.ID]" id="casu">
+            </a>
         </div>
     </div>
 </template>
 
 <style>
-.gallery {
+.gallery{
+    top: 100px;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 33% 33% 33%;
+    grid-gap: 20px;
+    padding: 10px;
+}
+.cont{
+    position: relative;
+}
+.cont a {
+    cursor: pointer;
+}
+#casu {
+    object-fit: contain;
+    height: 216px;
+    width: 100%;
+}
+/* .gallery {
     top: 100px;
     position: relative;
     display: grid;
@@ -36,11 +80,16 @@ export default {
 }
 .cont {
     text-align: center;
-    padding: 10px;
+    margin: 10px;
 }
-.cont img {
-    height: 150px;
-    object-fit: cover;
-    object-position: bottom;
+.img {
+    cursor: pointer;
+    object-fit: contain;
+}
+.img img {
+    height: 264px;
+} */
+#casu:hover {
+    opacity: 0.5;
 }
 </style>

@@ -1,8 +1,7 @@
 <script>
-
 export default {
     props: {
-        receivedata: Object
+        receivedata: Object,
     },
     computed: {
         getFollowers() {
@@ -23,6 +22,7 @@ export default {
     data() {
         return {
             username: localStorage.username,
+            flw: 0
         };
     },
     mounted() {
@@ -55,6 +55,9 @@ export default {
                 }
             }
             this.$parent.getProfile();
+        },
+        popFollowers() {
+            this.$router.push(`/users/${this.receivedata.username}/followers`)
         }
     }
 }
@@ -73,7 +76,7 @@ export default {
 
                 </div>
                 <div class="flw">
-                    <div v-if="username==receivedata.username">
+                    <div v-if="!receivedata.username || username==receivedata.username">
                     </div>
                     <button v-else-if="receivedata.followers && receivedata.followers.includes(username)" @click="unfollow" class="btnFlw" id="following">
                         Following
@@ -85,14 +88,15 @@ export default {
                 <div class="profile-stats">
 
                     <ul>
-                        <li><span class="profile-stat-count">{{getFollowers}}</span> followers</li>
+                        <li @click="popFollowers"><span class="profile-stat-count">{{getFollowers}}</span> followers</li>
                         <li><span class="profile-stat-count">{{getFollowing}}</span> following</li>
-                        <li>Post: <span class="profile-stat-count">{{receivedata.N_Photos}}</span></li>
+                        <li style="cursor: text;">Post: <span class="profile-stat-count">{{receivedata.N_Photos}}</span></li>
                     </ul>
 
                 </div>
             </div>
         </div>
+
     </div>
 </template>
 

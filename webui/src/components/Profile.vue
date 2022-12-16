@@ -5,24 +5,23 @@ import InfoProfile from './infoProfile.vue';
 import MediaProfile from './mediaProfile.vue';
 
 export default {
+    emits: ["followers", "following"],
     data() {
         return {
             badr: false,
             unauth: false,
             sendata: {},
-            listIm: []
         };
     },
     methods: {
         async getProfile() {
-            var path = this.$route.path
-            if (path.slice(-1) != "/") {
-                path+="/"
-            }
+            var path = "/users/"+this.$route.params.username+"/"
             try {
 
                 let response = await this.$axios.get(path);
                 this.sendata = response.data
+                this.$emit('followers', this.sendata.followers)
+                this.$emit('following', this.sendata.following)
             }
             catch (e) {
                 if (e.response.status == 404) {
@@ -34,24 +33,7 @@ export default {
                 }
             }
             document.getElementById("searchIn").value = null
-            for (let i=0;i<this.sendata.photos.length;i++) {
-                this.getImage(this.sendata.photos[i].URL)
-            }
             this.found = true
-        },
-        async getImage(path) {
-            try {
-                let response = await this.$axios.get(path, { responseType: 'blob' });
-                var url = URL.createObjectURL(response.data) 
-                this.listIm.push(url)
-            }
-            catch (e) {
-                console.log(e)
-                if (e.response.status == 404) {
-                    this.badr = true;
-                }
-            }
-            console.log(path)
         }
     },
     mounted() {
@@ -66,7 +48,7 @@ export default {
     <NavBar></NavBar>
     <div v-if="!badr && !unauth">
         <InfoProfile :receivedata="sendata"></InfoProfile>
-        <MediaProfile :receivedata="sendata" :images="listIm"></MediaProfile>
+        <MediaProfile :receivedata="sendata"></MediaProfile>
     </div>
     <div v-else-if="badr">
         <PageNotFound></PageNotFound>

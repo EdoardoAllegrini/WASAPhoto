@@ -10,7 +10,13 @@ export default {
 		}
 	},
 	methods: {
+		getMe() {
+			this.$router.push("/users/"+localStorage.username)
+			return
+		},
 		postImage() {
+			document.body.style.overflow = "hidden"
+			this.popupPost = true
 			return
 		},
 		search() {
@@ -53,9 +59,10 @@ export default {
 		<div class="dh" @click="goStream">
 			<svg class="svgL"><path d="M9.005 16.545a2.997 2.997 0 0 1 2.997-2.997A2.997 2.997 0 0 1 15 16.545V22h7V11.543L12 2 2 11.543V22h7.005Z"></path></svg>		
 		</div>
-		<div class="dh" @click="popupPost=!popupPost">
+		<div class="dh" @click="postImage">
 			<svg class="svgL"><path d="M2 12v3.45c0 2.849.698 4.005 1.606 4.944.94.909 2.098 1.608 4.946 1.608h6.896c2.848 0 4.006-.7 4.946-1.608C21.302 19.455 22 18.3 22 15.45V8.552c0-2.849-.698-4.006-1.606-4.945C19.454 2.7 18.296 2 15.448 2H8.552c-2.848 0-4.006.699-4.946 1.607C2.698 4.547 2 5.703 2 8.552Z"></path><line x1="6.545" x2="17.455" y1="12.001" y2="12.001"></line><line x1="12.003" x2="12.003" y1="6.545" y2="17.455"></line></svg>		
 		</div>
+		<div class="dh pro" @click="getMe"></div>
 		<PostPopup v-if="popupPost">
 
 		</PostPopup>
@@ -63,9 +70,9 @@ export default {
 </template>
 
 <style>
+
 	.dh {
 		box-sizing: border-box;
-		height: 24px;
 		width: 24px;
 		cursor: pointer;
 		float: right;
@@ -77,7 +84,7 @@ export default {
 		transform: scale(1.1);
 	}
 
-	.dh line, .dh path {
+	.dh line, .dh path, .dh circle {
 		fill: none;
 		stroke: currentcolor;
 		stroke-linecap: round;
@@ -90,7 +97,16 @@ export default {
 		color: rgb(255, 255, 255);
     	fill: rgb(38, 38, 38);
 	}
-
+	.pro {
+		padding-right: 0px;
+		border-radius: 50%;
+		border: 2px solid white;
+		height: 24px;
+		width: 24px;
+		position: relative;
+		margin-right: 24px;
+		top: 13px;
+	}
 	#hea {
 		display: inline-block;
 		width: 100%;

@@ -64,6 +64,10 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	photoCaption := r.FormValue("photoCaption")
+	if len(photoCaption) > 250 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	photoFile, _, err := r.FormFile("photoFile")
 
 	if err != nil {

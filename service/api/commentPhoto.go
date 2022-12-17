@@ -76,6 +76,10 @@ func (rt *_router) commentPhoto(w http.ResponseWriter, r *http.Request, ps httpr
 		// The body was not a parseable JSON, reject it
 		w.WriteHeader(http.StatusBadRequest)
 		return
+	} else if len(comment.Text) > 250 {
+		// The comment text is too long, reject it
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	dbcommentID, errLike := rt.db.Comment(photoid, dbuserAuth.Username, comment.Text)

@@ -22,7 +22,7 @@ func (db *appdbimpl) GetStream(user string) ([]Article, error) {
 		if err != nil {
 			return nil, err
 		}
-		tmp.URL = "http://localhost:3000/users/" + tmp.URL + "/media/" + strconv.FormatUint(tmp.ID, 10) + "/"
+		tmp.URL = "/users/" + tmp.User + "/media/" + strconv.FormatUint(tmp.ID, 10) + "/"
 		a.Ph = tmp
 		likes, err := db.GetLikes(tmp.ID)
 		if err != nil {

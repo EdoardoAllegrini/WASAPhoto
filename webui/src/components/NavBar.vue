@@ -74,13 +74,14 @@ export default {
 	.dh {
 		box-sizing: border-box;
 		width: 24px;
-		cursor: pointer;
 		float: right;
 		padding-top: 12px;
 		padding-right: 50px;
 	}
 
-	.dh:hover {
+	.svgL:hover, 
+	.pro:hover,
+	#search-button:hover {
 		transform: scale(1.1);
 	}
 
@@ -96,8 +97,10 @@ export default {
     	width: 24px;
 		color: rgb(255, 255, 255);
     	fill: rgb(38, 38, 38);
+		cursor: pointer;
 	}
 	.pro {
+		cursor: pointer;
 		padding-right: 0px;
 		border-radius: 50%;
 		border: 2px solid white;
@@ -107,6 +110,7 @@ export default {
 		margin-right: 24px;
 		top: 13px;
 	}
+
 	#hea {
 		display: inline-block;
 		width: 100%;

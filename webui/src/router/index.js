@@ -16,6 +16,7 @@ const router = createRouter({
 		{path: '/users/:username', component: Profile},
 		{path: '/users/:username/media/:photo', component: Image},
 		{path: '/users/:username/followers', component: FlwPopup},
+		{path: '/users/:username/following', component: FlwPopup},
 		{path: '/:pathMatch(.*)*', component: PageNotFound},
 	]
 })

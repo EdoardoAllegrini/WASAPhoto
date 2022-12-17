@@ -5,7 +5,7 @@ import InfoProfile from './infoProfile.vue';
 import MediaProfile from './mediaProfile.vue';
 
 export default {
-    emits: ["followers", "following"],
+    emits: ["flw"],
     data() {
         return {
             badr: false,
@@ -20,10 +20,10 @@ export default {
 
                 let response = await this.$axios.get(path);
                 this.sendata = response.data
-                this.$emit('followers', this.sendata.followers)
-                this.$emit('following', this.sendata.following)
+                this.$emit('flw', {followers: this.sendata.followers, following: this.sendata.following})
             }
             catch (e) {
+                console.log(e)
                 if (e.response.status == 404) {
                     this.badr = true
                     return
@@ -46,7 +46,7 @@ export default {
 
 <template>
     <NavBar></NavBar>
-    <div v-if="!badr && !unauth">
+    <div id="allPr" v-if="!badr && !unauth">
         <InfoProfile :receivedata="sendata"></InfoProfile>
         <MediaProfile :receivedata="sendata"></MediaProfile>
     </div>
@@ -59,4 +59,10 @@ export default {
 </template>
 
 <style>
+body {
+    overflow: scroll;
+}
+#allPr {
+    padding: 30px 20px 0;
+}
 </style>

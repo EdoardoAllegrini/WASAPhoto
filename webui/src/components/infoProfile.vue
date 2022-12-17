@@ -58,6 +58,9 @@ export default {
         },
         popFollowers() {
             this.$router.push(`/users/${this.receivedata.username}/followers`)
+        },
+        popFollowing() {
+            this.$router.push(`/users/${this.receivedata.username}/following`)
         }
     }
 }
@@ -89,7 +92,7 @@ export default {
 
                     <ul>
                         <li @click="popFollowers"><span class="profile-stat-count">{{getFollowers}}</span> followers</li>
-                        <li><span class="profile-stat-count">{{getFollowing}}</span> following</li>
+                        <li @click="popFollowing"><span class="profile-stat-count">{{getFollowing}}</span> following</li>
                         <li style="cursor: text;">Post: <span class="profile-stat-count">{{receivedata.N_Photos}}</span></li>
                     </ul>
 

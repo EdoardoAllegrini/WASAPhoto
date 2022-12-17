@@ -39,7 +39,7 @@ export default {
 <template>
     <div class="gallery">
         <div v-for="p in receivedata.photos" class="cont">
-            <a @click="$router.push(p.URL)" class="img">
+            <a :href="'/#'+p.URL" class="img">
                 <img :src="images[p.ID]" id="casu">
             </a>
         </div>
@@ -48,13 +48,14 @@ export default {
 
 <style>
 .gallery{
-    top: 100px;
     position: relative;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-columns: 33% 33% 33%;
     grid-gap: 20px;
     padding: 10px;
+    margin-top: 100px;
+    justify-content: center;
 }
 .cont{
     position: relative;

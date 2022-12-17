@@ -10,18 +10,12 @@ export default {
     },
     methods: {
         clickOutside(event) {
-            if (event.composedPath()['0'].className == 'popup') {this.exit()}
+            if (event.composedPath()['0'].className == 'popupF') {this.exit()}
         },
         exit() {
             this.$router.push(`/users/${this.$route.params["username"]}/`)
             document.body.style.overflow = "scroll"
             return
-        },
-        handleChange(e) {
-            this.image = e.target.files[0];
-            this.url = URL.createObjectURL(this.image);
-            if (this.url != null) {this.phSel = true}
-            else {this.phSel = false}
         },
         handleF(w) {
             if (this.$route.path.slice(-1) == 's') {
@@ -79,12 +73,12 @@ export default {
 
 <template>
     <Profile @flw="handleF($event)"></Profile>
-    <div class="popup" @click="clickOutside">
-        <div class="inner">
+    <div class="popupF" @click="clickOutside">
+        <div class="innerF">
             <slot />
             <div class="tit">
-                <div class="close" @click="exit">
-                    <svg class="xB" viewPort="0 0 12 12">
+                <div class="closeF" @click="exit">
+                    <svg class="xBF" viewPort="0 0 12 12">
                         <line x1="1" y1="11" 
                             x2="11" y2="1" 
                             stroke="black" 
@@ -95,7 +89,7 @@ export default {
                             stroke-width="2"/>
                     </svg>
                 </div>
-                <h2 id="descr">{{descr}}</h2>
+                <h2 id="descrF">{{descr}}</h2>
             </div>
             <hr>
 
@@ -145,7 +139,7 @@ export default {
     position: relative;
     height: 50px;
 }
-#descr {
+#descrF {
     text-align: center;
     height: 40px;
     position: relative;
@@ -153,12 +147,12 @@ export default {
     margin: 0;
     width: fit-content;
 }
-hr {
+.innerF hr {
     position: relative;
     bottom: 0px;
     margin: 0;
 }
-.close {
+.closeF {
     width: 20px;
     height: 20px;
     cursor: pointer;
@@ -167,10 +161,10 @@ hr {
     bottom: 0px;
     left: 306px;
 }
-.close:hover {
+.closeF:hover {
     transform: scale(1.2);
 }
-.xB {
+.xBF {
     vertical-align: text-top;
     height: 20px;
     width: 20px;
@@ -180,7 +174,7 @@ hr {
     height: 10%;
     justify-content: center;
 }
-.popup {
+.popupF {
     overflow: auto;
     position: fixed;
     top: 0;
@@ -193,7 +187,7 @@ hr {
     align-items: center;
     justify-content: center;
 }
-.inner {
+.innerF {
     border-radius: 10px;
     background: #FFF;
     padding: 0px;

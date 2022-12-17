@@ -12,7 +12,7 @@ const router = createRouter({
 	routes: [
 		{path: '/session', component: LoginPage},
 		{path: '/', component: LoginPage},
-		{path: '/stream/:username', component: Stream},
+		{path: '/stream/', component: Stream},
 		{path: '/users/:username', component: Profile},
 		{path: '/users/:username/media/:photo', component: Image},
 		{path: '/users/:username/followers', component: FlwPopup},

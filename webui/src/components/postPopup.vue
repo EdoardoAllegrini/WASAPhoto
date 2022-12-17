@@ -50,31 +50,36 @@ export default {
     <div class="popup" @click="clickOutside">
         <div class="inner">
             <slot />
-            <div class="close" @click="exit">
-                <svg class="xB" viewPort="0 0 12 12">
-                    <line x1="1" y1="11" 
-                        x2="11" y2="1" 
-                        stroke="black" 
-                        stroke-width="2"/>
-                    <line x1="1" y1="1" 
-                        x2="11" y2="11" 
-                        stroke="black" 
-                        stroke-width="2"/>
-                </svg>
+            <div class="tit">
+                <div class="close" @click="exit">
+                    <svg class="xB" viewPort="0 0 12 12">
+                        <line x1="1" y1="11" 
+                            x2="11" y2="1" 
+                            stroke="black" 
+                            stroke-width="2"/>
+                        <line x1="1" y1="1" 
+                            x2="11" y2="11" 
+                            stroke="black" 
+                            stroke-width="2"/>
+                    </svg>
+                </div>
+                <h2 id="descr">Create a new post</h2>
             </div>
-            <h2 id="descr">Create a new post</h2>
             <hr>
             <div id="preview">
                 <img v-if="true" :src="url" />
             </div>
             <div v-if="phSel" id="capt">
-                <textarea v-model="caption" placeholder="Write a caption..." autocomplete="off" autocorrect="off"></textarea>
+                <textarea v-model="caption" placeholder="Write a caption..." autocomplete="off" autocorrect="off" maxlength="250"></textarea>
             </div>
-            <label class="containerPost" id="file">
-                <input type="file" @change="handleChange"/>
-                Select File
-            </label>
-            <button v-if="phSel" class="containerPost" id="send" @click="postPhoto">post</button>
+            <div class="lopi">
+                <label class="containerPost" id="file" for="grio">
+                    Select File
+                </label>
+                <input type="file" @change="handleChange" accept="image/png, image/jpeg" id="grio">
+                <button v-if="phSel" class="containerPost" id="send" @click="postPhoto">post</button>
+            </div>
+
         </div>
     </div>
 </template>
@@ -82,8 +87,9 @@ export default {
 <style>
 #capt {
     position: relative;
-    bottom: 38px;
-    height: 66px;
+    height: 86px;
+    padding: 10px;
+    overflow: hidden;
 }
 #capt textarea {
     width: 100%;
@@ -95,12 +101,13 @@ export default {
     outline: none;
 }
 #preview {
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  bottom: 50px;
-  height: 384px;
-  text-align: center;
+    margin-top: 20px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    text-align: center;
+    display: flex;
+    height: 380px;
 }
 
 #preview img {
@@ -122,39 +129,49 @@ input[type="file"] {
 }
 #send {
     height: 23px;
-    left: 550px;
-    bottom: 10px;
+    left: 320px;
     width: 36px;
     background-color: white;
     border: 1px solid black;
     color: black;
 }
+.lopi {
+    position: absolute;
+    width: inherit;
+    bottom: 142px;
+    display: flex;
+    justify-content: center;
+}
 #send:hover {
     background-color: #ccc;
 }
 #file {
-
     height: 23px;
-    bottom: 10px;
-    left: 280px;
+    width: 100px;
+    position: absolute;
 }
 #descr {
+    top: 10px;
     text-align: center;
     height: 40px;
     position: relative;
-    bottom: 48px;
+    bottom: 0px;
+    margin: 0;
+    width: fit-content;
 }
-hr {
+.inner hr {
     position: relative;
-    bottom: 60px;
+    bottom: 0px;
+    margin: 0;
 }
 .close {
     width: 20px;
     height: 20px;
     cursor: pointer;
     position: relative;
-    bottom: 30px;
-    left: 650px;
+    float: right;
+    bottom: 0px;
+    left: 460px;
 }
 .close:hover {
     transform: scale(1.2);
@@ -164,7 +181,13 @@ hr {
     height: 20px;
     width: 20px;
 }
+.tit {
+    display: flex;
+    height: 8%;
+    justify-content: center;
+}
 .popup {
+    overflow: auto;
     position: fixed;
     top: 0;
     right: 0;
@@ -177,9 +200,10 @@ hr {
     justify-content: center;
 }
 .inner {
+    text-align: center;
     border-radius: 10px;
     background: #FFF;
-    padding: 32px;
+    padding: 0px;
     width: 700px;
     height: 600px;
 }

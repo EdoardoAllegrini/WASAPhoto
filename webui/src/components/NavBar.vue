@@ -31,7 +31,7 @@ export default {
 			setTimeout(() => this.menu = false, 2000)
 		},
 		goStream() {
-			this.$router.push(`/stream/${localStorage.username}`)
+			this.$router.push(`/stream/`)
 		}
 	},
     components: { PostPopup },
@@ -114,6 +114,7 @@ export default {
 	#hea {
 		display: inline-block;
 		width: 100%;
+		text-align: center;
 	}
 	/* Removes the browser default x from search input */
 	input[type="search"]::-webkit-search-cancel-button,
@@ -153,7 +154,7 @@ export default {
 	.sr {
 		display: inline-block;
 		position: relative;
-		left: 25%;
+		top: 13px;
 	}
 
 	#search-button {

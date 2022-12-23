@@ -38,6 +38,7 @@ import (
 
 var ErrUsernameNotAvailable = errors.New("username is not available")
 var ErrImageDoesNotExist = errors.New("image does not exist")
+var ErrUserBanned = errors.New("user banned")
 
 type User struct {
 	Username   string `json:"username"`
@@ -140,10 +141,10 @@ type AppDatabase interface {
 	GetBanned(string) ([]string, error)
 
 	// Comment adds a comment to the photo given, returns the id of the comment
-	Comment(uint64, string, string) (uint64, error)
+	Comment(string, uint64, string, string) (uint64, error)
 
 	// GetComments returns all the comment of the photo given
-	GetComments(uint64) ([]Comment, error)
+	GetComments(uint64, string) ([]Comment, error)
 
 	// RemoveComment removes the comment given from the photo in path
 	RemoveComment(uint64) error

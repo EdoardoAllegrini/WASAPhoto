@@ -29,7 +29,7 @@ func (db *appdbimpl) GetStream(user string) ([]Article, error) {
 			return nil, err
 		}
 		a.Likes = len(likes)
-		comments, err := db.GetComments(tmp.ID)
+		comments, err := db.GetComments(tmp.ID, user)
 		if err != nil {
 			return nil, err
 		}

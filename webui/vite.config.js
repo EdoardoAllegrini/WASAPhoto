@@ -13,6 +13,7 @@ export default defineConfig(({command, mode, ssrBuild}) => {
 			}
 		},
 	};
+<<<<<<< HEAD
 	if (command === 'serve') {
 		ret.define = {
 			"__API_URL__": JSON.stringify("http://localhost:3000"),
@@ -22,5 +23,10 @@ export default defineConfig(({command, mode, ssrBuild}) => {
 			"__API_URL__": JSON.stringify("http://localhost:3000"),
 		};
 	}
+=======
+	ret.define = {
+		"__API_URL__": JSON.stringify("http://localhost:3000"),
+	};
+>>>>>>> af80defd9199f2a97651b5aa3be1a1112207c3ea
 	return ret;
 })

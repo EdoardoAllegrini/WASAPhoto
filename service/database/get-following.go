@@ -1,7 +1,7 @@
 package database
 
-func (db *appdbimpl) GetFollowing(username string) ([]string, error) {
-	rows, err := db.c.Query(`SELECT follow.follow FROM follow WHERE follow.username=?;`, username)
+func (db *appdbimpl) GetFollowing(username string, uAuth string) ([]string, error) {
+	rows, err := db.c.Query(`SELECT follow.follow FROM follow WHERE follow.username=? and NOT EXISTS (select * from ban where ban.username=follow.follow and ban.ban=?);`, username, uAuth)
 
 	if err != nil {
 		return nil, err

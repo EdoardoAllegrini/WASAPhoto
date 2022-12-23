@@ -96,7 +96,7 @@ type AppDatabase interface {
 	CreateMedia(string, string, []byte) (uint64, error)
 
 	// GetImageFromIDPoster returns the image in the database posted by username with id given, if exists
-	GetImageFromIDPoster(uint64, string) ([]byte, error)
+	GetImageFromIDPoster(uint64, string, string) ([]byte, error)
 
 	// GetImagePoster returns the username of the user that posted photo with id given, if exists
 	GetImagePoster(uint64) (string, error)
@@ -108,16 +108,16 @@ type AppDatabase interface {
 	CheckBanned(string, string) (bool, error)
 
 	// GetLikes returns the list of users that like the photo given in input
-	GetLikes(uint64) ([]string, error)
+	GetLikes(uint64, string) ([]string, error)
 
 	// DeleteImage deletes the image in the database with id given, if exists
 	DeleteImage(uint64) error
 
 	// SetLike is a function that let user relative to userLike set a like to the photo as photo-id posted by user given in path
-	SetLike(uint64, string) error
+	SetLike(uint64, string, string) error
 
 	// SetLike is a function that let user relative to userLike remove the like to the photo as photo-id posted by user given in path
-	RemoveLike(uint64, string) error
+	RemoveLike(uint64, string, string) error
 
 	// CreateFollow is a function that adds a new follower (userFollow) to username profile
 	CreateFollow(string, string) error
@@ -126,10 +126,10 @@ type AppDatabase interface {
 	RemoveFollow(string, string) error
 
 	// GetFollowers returns the list of users followed by username
-	GetFollowing(string) ([]string, error)
+	GetFollowing(string, string) ([]string, error)
 
 	// GetFollowers returns the list of users that follow username
-	GetFollowers(string) ([]string, error)
+	GetFollowers(string, string) ([]string, error)
 
 	// CreateBan is a function that adds userFollow to users banned by username
 	CreateBan(string, string) error
@@ -147,13 +147,13 @@ type AppDatabase interface {
 	GetComments(uint64, string) ([]Comment, error)
 
 	// RemoveComment removes the comment given from the photo in path
-	RemoveComment(uint64) error
+	RemoveComment(uint64, uint64) error
 
 	// GetPhotos returns the photos in reverse chronological order of the user given in input
 	GetPhotos(string) ([]Photo, error)
 
 	// GetProfile returns the profile of user given as second argument if user authenticated (first argument) is not banned by him
-	GetProfile(string) (*Profile, error)
+	GetProfile(string, string) (*Profile, error)
 
 	// GetStream returns the list of articles  in reverse chronological order (photo, comments and likes) of all users followed by usermame in input
 	GetStream(string) ([]Article, error)
@@ -232,6 +232,20 @@ func New(db *sql.DB) (AppDatabase, error) {
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comments';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := `CREATE TABLE comments (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, image INTEGER NOT NULL, username TEXT NOT NULL, comment TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='trigger' AND name='followBan';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TRIGGER followBan
+		AFTER INSERT ON ban 
+		BEGIN
+			DELETE FROM follow WHERE NEW.username=follow.username and NEW.ban=follow.follow;
+			DELETE FROM follow WHERE NEW.username=follow.follow and NEW.ban=follow.username;
+		END;`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)

@@ -24,7 +24,7 @@ func (db *appdbimpl) GetStream(user string) ([]Article, error) {
 		}
 		tmp.URL = "/users/" + tmp.User + "/media/" + strconv.FormatUint(tmp.ID, 10) + "/"
 		a.Ph = tmp
-		likes, err := db.GetLikes(tmp.ID)
+		likes, err := db.GetLikes(tmp.ID, user)
 		if err != nil {
 			return nil, err
 		}

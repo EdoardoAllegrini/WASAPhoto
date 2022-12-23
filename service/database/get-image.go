@@ -1,7 +1,7 @@
 package database
 
-func (db *appdbimpl) GetImageFromIDPoster(photoid uint64, username string) ([]byte, error) {
-	rows, err := db.c.Query(`SELECT image FROM media WHERE id=? and username=?;`, photoid, username)
+func (db *appdbimpl) GetImageFromIDPoster(photoid uint64, username string, uAuth string) ([]byte, error) {
+	rows, err := db.c.Query(`SELECT image FROM media WHERE id=? and username=? and NOT EXISTS (select * from ban where ban.username=media.username and ban.ban=?);`, photoid, username, uAuth)
 
 	if err != nil {
 		return nil, err

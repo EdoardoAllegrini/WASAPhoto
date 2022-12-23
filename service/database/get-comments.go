@@ -1,7 +1,7 @@
 package database
 
 func (db *appdbimpl) GetComments(photoid uint64, uAuth string) ([]Comment, error) {
-	rows, err := db.c.Query(`SELECT comments.id, comments.image, comments.username, comment, comments.timestamp FROM comments, ban, media WHERE comments.image=? and media.id=comments.image and NOT (ban.username=comments.username and ban.ban=?);`, photoid, uAuth)
+	rows, err := db.c.Query(`SELECT comments.id, comments.image, comments.username, comment, comments.timestamp FROM comments WHERE comments.image=? and NOT EXISTS (SELECT * FROM ban WHERE ban.username=comments.username and ban.ban=?);`, photoid, uAuth)
 	if err != nil {
 		return nil, err
 	}

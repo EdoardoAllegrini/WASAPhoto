@@ -13,8 +13,6 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/users/:username/media/:photo-id/likes/:userLike/", rt.wrap(rt.likePhoto))
 	rt.router.DELETE("/users/:username/media/:photo-id/likes/:userLike/", rt.wrap(rt.unlikePhoto))
 	rt.router.GET("/stream/", rt.wrap(rt.getMyStream))
-
-	// TO FIX: should be /:username/media
 	rt.router.POST("/users/:username/media/", rt.wrap(rt.uploadPhoto))
 	rt.router.GET("/users/:username/media/:photo-id/", rt.wrap(rt.getPhoto))
 	rt.router.DELETE("/users/:username/media/:photo-id/", rt.wrap(rt.deletePhoto))

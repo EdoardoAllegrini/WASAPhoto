@@ -2,8 +2,8 @@ package database
 
 import "strconv"
 
-func (db *appdbimpl) GetProfile(userProf string) (*Profile, error) {
-	rows, err := db.c.Query("SELECT media.id, media.username, media.caption, media.timestamp FROM media WHERE media.username=?  ORDER BY timestamp DESC;", userProf)
+func (db *appdbimpl) GetProfile(userProf string, uAuth string) (*Profile, error) {
+	rows, err := db.c.Query("SELECT media.id, media.username, media.caption, media.timestamp FROM media WHERE media.username=? ORDER BY timestamp DESC;", userProf)
 
 	if err != nil {
 		return nil, err
@@ -27,13 +27,13 @@ func (db *appdbimpl) GetProfile(userProf string) (*Profile, error) {
 		return nil, err
 	}
 
-	followers, err := db.GetFollowers(userProf)
+	followers, err := db.GetFollowers(userProf, uAuth)
 	if err != nil {
 		return nil, err
 	}
 	ret.Followers = followers
 
-	following, err := db.GetFollowing(userProf)
+	following, err := db.GetFollowing(userProf, uAuth)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,7 @@
 package database
 
-func (db *appdbimpl) GetLikes(photoid uint64) ([]string, error) {
-	rows, err := db.c.Query(`SELECT username FROM likes WHERE likes.image=?;`, photoid)
+func (db *appdbimpl) GetLikes(photoid uint64, uAuth string) ([]string, error) {
+	rows, err := db.c.Query(`SELECT likes.username FROM likes WHERE likes.image=? and NOT EXISTS (SELECT * FROM ban WHERE ban.username=likes.username and ban.ban=?)`, photoid, uAuth)
 
 	if err != nil {
 		return nil, err

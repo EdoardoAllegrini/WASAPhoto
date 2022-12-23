@@ -50,7 +50,7 @@ func (rt *_router) getFollowers(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 	// Check if username in path has banned user authenticated
-	// (done with separated query cause otherwise I can't higlight the difference between profile blank and user banned which all returns rows empty)
+	// (done with separated query cause if condition on line up is true I can avoid to check that condition every query)
 
 	c, errC := rt.db.CheckBanned(dbuser.Username, dbuserAuth.Username)
 	if errC != nil {
@@ -67,7 +67,7 @@ func (rt *_router) getFollowers(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	dblist, err := rt.db.GetFollowers(dbuser.Username)
+	dblist, err := rt.db.GetFollowers(dbuser.Username, dbuserAuth.Username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

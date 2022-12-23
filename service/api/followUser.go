@@ -83,23 +83,22 @@ func (rt *_router) followUser(w http.ResponseWriter, r *http.Request, ps httprou
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
-	// // Check if username in path has banned user authenticated
-	// // (done with separated query cause otherwise I can't higlight the difference between profile blank and user banned which all returns rows empty)
-	// c, errC := rt.db.CheckBanned(dbuserAuth.Username, dbuserFo.Username)
-	// if errC != nil {
-	// 	// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
-	// 	// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
-	// 	ctx.Logger.WithError(err).Error("can't get the user")
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// } else if c {
-	// 	// Username has banned user authenticated
-	// 	// Reject the action indicating an error on the client side.
-	// 	w.WriteHeader(http.StatusNotFound)
-	// 	// fmt.Println(dbuser.Username + " banned " + dbuserAuth.Username)
-	// 	return
-	// }
+	// check if user authenticated has banned userFo
+	// (done with separated query cause so I can return statusConflict)
+	c, errC := rt.db.CheckBanned(dbuserAuth.Username, dbuserFo.Username)
+	if errC != nil {
+		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
+		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
+		ctx.Logger.WithError(err).Error("can't get the user")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if c {
+		// Username has banned user authenticated
+		// Reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusConflict)
+		// fmt.Println(dbuser.Username + " banned " + dbuserAuth.Username)
+		return
+	}
 
 	err = rt.db.CreateFollow(dbuser.Username, dbuserFo.Username)
 	if err != nil {

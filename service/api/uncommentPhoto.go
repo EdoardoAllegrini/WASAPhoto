@@ -84,7 +84,7 @@ func (rt *_router) uncommentPhoto(w http.ResponseWriter, r *http.Request, ps htt
 		// fmt.Println("[-] Photo-id in path is not valid")
 		return
 	}
-	errCom := rt.db.RemoveComment(commentid)
+	errCom := rt.db.RemoveComment(commentid, photoid)
 	if errCom != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

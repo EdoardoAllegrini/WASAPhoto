@@ -457,7 +457,7 @@ paths:
       security:
         - bearerAuth: []
       summary: Returns comments
-      description: Returns a list of comments objects relative to the photo with photo-id given, 
+      description: Returns a list of comments objects (in reverse chronological order) relative to the photo with photo-id given, 
         posted by username in path; if user authenticated is not banned by username.
       operationId: getComments
       responses:

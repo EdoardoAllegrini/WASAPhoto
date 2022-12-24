@@ -1,5 +1,6 @@
 <script>
 import { toRaw } from 'vue'
+import FooterPost from './footerPost.vue'
 
 export default {
     props: {
@@ -8,8 +9,6 @@ export default {
     data() {
         return {
             images: [],
-            likers: {},
-            comment: ""
         }
     },
     methods: {
@@ -25,66 +24,6 @@ export default {
                 }
                 return
             }
-        },
-        async handleLike(event, art) {
-            if (this.likers == undefined) {return}
-            if (this.likers[art.Ph.URL] == null) {this.likers[art.Ph.URL] = []}
-            try {
-                if (this.likers[art.Ph.URL] == undefined || this.likers[art.Ph.URL] == null || !this.likers[art.Ph.URL].includes(localStorage.username)) {
-                    var response = await this.$axios.put(`/users/${art.Ph.User}/media/${art.Ph.ID}/likes/${localStorage.username}/`, {})
-                    var _ = response.data
-                    this.likers[art.Ph.URL].push(localStorage.username)
-                    art.Likes++
-                } else {
-                    var response = await this.$axios.delete(`/users/${art.Ph.User}/media/${art.Ph.ID}/likes/${localStorage.username}/`)
-                    var _ = response.data  
-                    this.likers[art.Ph.URL].splice(this.likers[art.Ph.URL].indexOf(localStorage.username));
-                    art.Likes--
-                }
-                return 
-            }
-            catch (e) {
-                console.log(e)
-                if (e.response.status == 404) {
-                    this.badr = true;
-                }
-            }
-            console.log(this.likers)
-        },
-        async getLikers(username, photoId) {
-            try {
-                var response = await this.$axios.get(`/users/${username}/media/${photoId}/likes/`)
-                return response.data
-            }
-            catch (e) {
-                console.log(e)
-                if (e.response.status == 404) {
-                    this.badr = true;
-                }
-            }
-        },
-        statusImg(pic) {
-            if (toRaw(this.likers[pic.Ph.URL]) != undefined) {
-                if (this.likers[pic.Ph.URL].includes(localStorage.username)) {
-                    return "fill: red;"
-                }
-            }
-            return ""
-        },
-        async postComment(username, photoId) {
-            var b = {
-                text: this.comment
-            }
-            try {
-                var response = await this.$axios.get(`/users/${username}/media/${photoId}/comments/`, b)
-                var _ = response.data
-            }
-            catch (e) {
-                console.log(e)
-                if (e.response.status == 404) {
-                    this.badr = true;
-                }
-            }
         }
     },
     watch: {
@@ -94,10 +33,11 @@ export default {
                 let curr = tmp[a]
                 let url = await this.getImage(curr.Ph.URL)
                 this.images[`${curr.Ph.URL}`] = url
-                this.likers[curr.Ph.URL] = []
-                this.likers[curr.Ph.URL] = await this.getLikers(curr.Ph.User, curr.Ph.ID)
             } 
         }
+    },
+    components: {
+        FooterPost
     }
 }
 </script>
@@ -110,30 +50,13 @@ export default {
                     <div class="head">
                         <p class="poster">{{a.Ph.User}}</p>
                     </div>
+                    <hr class="hrFeed">
                     <div class="ph">
                         <a :href="'/#'+a.Ph.URL" class="sdsv">
                             <img :src="images[a.Ph.URL]" id="wrte">
                         </a>
                     </div>
-                    <div class="descap">
-                        <div class="sts">
-                            <div class="hgy" @click="handleLike($event, a)">
-                                <svg class="svgL kiop"><path :style="statusImg(a)" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"></path></svg>                            
-                            </div>
-                            <div class="hgy" @click="setComment">
-                                <svg class="svgL kiop" viewBox="0 0 24 24"><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z"></path></svg>                            
-                            </div>
-                        </div>
-                        <div v-if="a.Likes>0" class="piac">
-                            {{a.Likes}} likes
-                        </div>
-                        <form class="cmnty">
-                            <textarea v-model="comment" name="" id="friw" placeholder="Add a comment..." maxlength="250" autocomplete="off" autocapitalize="off" autocorrect="off"></textarea>
-                            <div class="lakd">
-                                <button id="hgtu"  @click="postComment(a.Ph.User, a.Ph.ID)">Publish</button>
-                            </div>
-                        </form>
-                    </div>
+                <FooterPost :receivedata="{poster: a.Ph.User, photo: a.Ph.ID, capt: a.Ph.Caption}"></FooterPost>
                 </div>
             </article>
 
@@ -142,12 +65,34 @@ export default {
 </template>
 
 <style>
+.hrFeed {
+    margin: 5px;
+}
+#cmrt {
+    position: relative;
+    max-height: 62px;
+    overflow: auto;
+}
+#propi {
+    display: inline;
+    font-size: 14px;
+    color: rgb(38, 38, 38);
+    font-weight: 600;
+}
+.ds {
+    position: relative;
+    display: flex;
+    text-align: left;
+    padding-left: 10px;
+}
 #hgtu {
     border: none;
-    color: rgb(0, 149, 246);
+    color: #b3dbff;
+    /* color: rgb(0, 149, 246); */
     background-color: white;
     text-align: center;
     font-weight: bold;
+    pointer-events: none;
 }
 .lakd {
     float: right;
@@ -156,10 +101,7 @@ export default {
 
 }
 .cmnty {
-    padding-top: 10px;
-    position: relative;
     width: 100%;
-    height: 98%;
     align-items: center;
     border: 0;
     display: flex;
@@ -180,6 +122,7 @@ export default {
     height: 100%;
     position: relative;
     resize: none;
+    border-radius: 5px;
 }
 .piac {
     padding-left: 10px;
@@ -211,7 +154,7 @@ export default {
     height: 30px;
 }
 .descap {
-    height: 88px;
+    height: 25%;
 }
 .sdsv {
     position: relative;
@@ -233,7 +176,7 @@ export default {
 }
 section {
     width: 560px;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
     padding-top: 20px;
     top: 0;
@@ -259,7 +202,7 @@ section article {
     font-size: 20px;
 }
 .article {
-    height: 650px;
+    height: 700px;
     background: white;
     width: 100%;
     position: relative;

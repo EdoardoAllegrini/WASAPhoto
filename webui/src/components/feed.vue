@@ -1,10 +1,12 @@
 <script>
 import { toRaw } from 'vue'
 import FooterPost from './footerPost.vue'
+import Image from './image.vue'
 
 export default {
     props: {
         receivedata: Object,
+        varia: false
     },
     data() {
         return {
@@ -37,7 +39,8 @@ export default {
         }
     },
     components: {
-        FooterPost
+        FooterPost,
+        Image
     }
 }
 </script>
@@ -56,15 +59,19 @@ export default {
                             <img :src="images[a.Ph.URL]" id="wrte">
                         </a>
                     </div>
-                <FooterPost :receivedata="{poster: a.Ph.User, photo: a.Ph.ID, capt: a.Ph.Caption}"></FooterPost>
+                    <FooterPost :receivedata="{poster: a.Ph.User, photo: a.Ph.ID, capt: a.Ph.Caption}"></FooterPost>
                 </div>
             </article>
 
         </section>
     </div>
+    <!-- <router-view></router-view> -->
 </template>
 
 <style>
+Portal {
+    display: none;
+}
 .hrFeed {
     margin: 5px;
 }
@@ -202,7 +209,7 @@ section article {
     font-size: 20px;
 }
 .article {
-    height: 700px;
+    height: 680px;
     background: white;
     width: 100%;
     position: relative;

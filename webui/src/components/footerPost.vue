@@ -1,6 +1,7 @@
 <script>
 
 export default {
+    emits: ["postedComment"],
     props: {
         receivedata: Object,
     },
@@ -44,6 +45,7 @@ export default {
             return ""
         },
         async postComment(event) {
+            var cp = event.composedPath()
             var txar = event.composedPath()[2][0]
             var b = {
                 text: txar.value
@@ -52,6 +54,8 @@ export default {
                 var response = await this.$axios.post(`/users/${this.receivedata.poster}/media/${this.receivedata.photo}/comments/`, b)
                 var _ = response.data
                 txar.value = ""
+                cp[0].style.color = "rgb(179, 219, 255)"
+                cp[0].style.pointerEvents = "none"
             }
             catch (e) {
                 console.log(e)
@@ -59,6 +63,7 @@ export default {
                     this.badr = true;
                 }
             }
+            this.$emit("postedComment")
         },
         handleInputCmnt(ev) {
             if (ev.target.value.length < 1 && ev.composedPath()[1][1].style.color=="rgb(0, 149, 246)") {
@@ -120,8 +125,19 @@ export default {
                 <button style="border: none;color: #b3dbff;background-color: white;text-align: center;font-weight: bold;" id="hgtu" @click="postComment($event)">Publish</button>
             </div>
         </form>
+        <a class="swcmt" :href="'/#/users/'+receivedata.poster+'/media/'+receivedata.photo+'/'">Show comments</a>
     </div>
 </template>
 
 <style>
+.swcmt {
+    color: rgb(168,168,168);
+    text-decoration: none;
+    padding-left: 10px;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.swcmt:hover {
+    color: initial;
+}
 </style>

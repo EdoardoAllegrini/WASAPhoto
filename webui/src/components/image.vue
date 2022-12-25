@@ -13,6 +13,14 @@ export default {
         }
     },
     methods: {
+        clickOutside(event) {
+            if (event.composedPath()['0'].className == 'popup') {this.exit()}
+        },
+        exit() {
+            this.$router.push("/stream/")
+            document.body.style.overflow = "scroll"
+            return
+        },
         async getImage(path) {
             if (path.slice(-1) != "/") {
                 path+="/"
@@ -32,7 +40,7 @@ export default {
         async getComments() {
             try {
                 var response = await this.$axios.get(`/users/${this.poster}/media/${this.$route.params.photo}/comments/`)
-                return response.data
+                if (response.data) {this.comments = response.data}
             }
             catch (e) {
                 console.log(e)
@@ -62,9 +70,9 @@ export default {
     async mounted() {
         this.poster = this.$route.params.username
         this.getImage(this.$route.path)
-        let c = await this.getComments()
-        if (c) {this.comments = c}
+        await this.getComments()
         document.body.style.overflow = "hidden"
+        document.body.getElementsByClassName("swcmt")[0].style.display = "none"
     },
     components: {
         PageNotFound,
@@ -100,7 +108,7 @@ export default {
                         </div>
                     </div>
                 </div>
-                <FootPost :receivedata="{poster: poster, photo: $route.params.photo}"></FootPost>
+                <FootPost :receivedata="{poster: poster, photo: $route.params.photo}" @postedComment="getComments"></FootPost>
             </div>
             <div v-if="badr">
                 <PageNotFound></PageNotFound>

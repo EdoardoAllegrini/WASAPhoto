@@ -5,7 +5,7 @@ func (db *appdbimpl) SetMyUserName(oldUser User, newusername string) (*User, err
 	newidentifier := "ID_" + newusername
 	_, err := db.c.Exec("UPDATE users SET username=?, identifier=? WHERE username=?", newusername, newidentifier, oldUser.Username)
 	if err != nil {
-		if err.Error() == "UNIQUE constraint failed: users.identifier" {
+		if err.Error() == "UNIQUE constraint failed: users.username" {
 			return nil, ErrUsernameNotAvailable
 		}
 		return nil, err

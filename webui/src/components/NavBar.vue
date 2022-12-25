@@ -6,7 +6,12 @@ export default {
 		return {
 			profile: "",
 			menu: false,
-			popupPost: false
+			popupPost: false,
+			us: {
+				sh: false,
+				usToCh: null,
+				notAv: false
+			}
 		}
 	},
 	methods: {
@@ -28,10 +33,31 @@ export default {
 		},
 		showMenu() {
 			this.menu = !this.menu
-			setTimeout(() => this.menu = false, 2000)
+			// setTimeout(() => this.menu = false, 2500)
 		},
 		goStream() {
 			this.$router.push(`/stream/`)
+		},
+		signOut() {
+			localStorage.clear()
+			this.$router.push("/")
+		}, 
+		clickOutside(event) {
+            if (event.composedPath()['0'].className == 'popup') {this.us.sh=false}
+        },
+		async changeUsername() {
+			try {
+                let response = await this.$axios.put(`/users/${localStorage.username}/`, {
+					username: this.us.usToCh
+				});
+				this.us.sh = false
+			}
+			catch (e) {
+				console.log(e);
+                    if (e.response.status == 409) {
+                        this.notAv = true
+                    }
+			}
 		}
 	},
     components: { PostPopup },
@@ -54,8 +80,22 @@ export default {
 			<svg class="svgL"><line x1="3" x2="21" y1="4" y2="4"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="20" y2="20"></line></svg>
 		</div>
 		<div v-if="menu" class="menu">
-			<button id="sout" type="submit" @click="$router.push('/')">Sign out</button>
+			<button id="sout" type="submit" @click="signOut">Sign out</button>
+			<button id="sout" type="submit" @click="us.sh=true">Change username</button>
+			<div class="popup" @click="clickOutside" v-if="us.sh">
+				<div class="inner">
+					<slot />
+					<div class="l-part">
+						<input type="text" v-model="us.usToCh" placeholder="Username" class="input-1" required/>
+						<input type="button" @click="changeUsername" value="Change" class="mybtn" />
+						<div v-if="us.notAv" class="badReq">
+							Username not available
+						</div>					
+					</div>
+				</div>
+    		</div>
 		</div>
+		
 		<div class="dh" @click="goStream">
 			<svg class="svgL"><path d="M9.005 16.545a2.997 2.997 0 0 1 2.997-2.997A2.997 2.997 0 0 1 15 16.545V22h7V11.543L12 2 2 11.543V22h7.005Z"></path></svg>		
 		</div>
@@ -70,7 +110,10 @@ export default {
 </template>
 
 <style>
-
+	.inner {
+		width: 300px;
+		height: 150px;
+	}
 	.dh {
 		box-sizing: border-box;
 		width: 24px;
@@ -136,15 +179,19 @@ export default {
 		position: absolute;
 		right: 1px;
 		background-color: rgba(var(--bs-dark-rgb), var(--bs-bg-opacity)) !important;
+		width: 160px;
 	}
 
 	#sout {
-		margin: 5px;
+		margin: 5px 0 0;
 		background-color: rgba(var(--bs-dark-rgb), var(--bs-bg-opacity)) !important;
 		font-size: 17px;
 		border: none;
 		cursor: pointer;
 		color: white;
+		width: 100%;
+		position: relative;
+		text-align: center;
 	}
 
 	#sout:hover {

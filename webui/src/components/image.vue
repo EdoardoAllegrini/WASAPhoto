@@ -3,7 +3,7 @@ import PageNotFound from './PageNotFound.vue'
 import FootPost from './footerPost.vue'
 
 export default {
-    emits: ["likeAct"],
+    emits: ["postedComment","likeAct"],
     data() {
         return {
             url: null,
@@ -53,6 +53,7 @@ export default {
                     this.badr = true;
                 }
             }
+            this.$emit("postedComment")
         },
         checkPosterAuth() {
             return localStorage.username == this.poster
@@ -77,8 +78,11 @@ export default {
         this.getImage(this.$route.path)
         await this.getComments()
         document.body.style.overflow = "hidden"
-        var leng = document.body.getElementsByClassName("swcmt").length
-        document.body.getElementsByClassName("swcmt")[leng-1].style.display = "none"
+        var clss = document.body.getElementsByClassName("swcmt")
+        clss[clss.length-1].style.display = "none"
+        clss = document.body.getElementsByClassName("hgy")
+        clss[clss.length-1].style.display = "none"
+
     },
     components: {
         PageNotFound,

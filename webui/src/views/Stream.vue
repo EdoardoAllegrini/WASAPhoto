@@ -36,7 +36,7 @@ export default {
 
 <template>
 	<NavBar></NavBar>
-    <Feed :receivedata="sendata" @likeAct="getStream"></Feed>
+    <Feed v-if="sendata!=null" :receivedata="sendata" @likeAct="getStream"></Feed>
 </template>
 
 <style>

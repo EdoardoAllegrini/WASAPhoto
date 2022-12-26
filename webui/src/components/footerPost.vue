@@ -13,6 +13,9 @@ export default {
         }
     },
     methods: {
+        showComments() {
+            this.$router.push('/users/'+this.receivedata.poster+'/media/'+this.receivedata.photo+'/')
+        },
         async handleLike() {
             try {
                 if (this.likers == undefined || this.likers == null || !this.likers.includes(localStorage.username)) {

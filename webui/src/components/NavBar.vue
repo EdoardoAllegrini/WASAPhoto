@@ -51,6 +51,9 @@ export default {
 					username: this.us.usToCh
 				});
 				this.us.sh = false
+				localStorage.username = this.us.usToCh
+				localStorage.identifier = response.data
+				this.$router.push("/stream/")
 			}
 			catch (e) {
 				console.log(e);

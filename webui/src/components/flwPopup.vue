@@ -1,11 +1,15 @@
 <script>
 import { toRaw } from 'vue'
-import Profile from './Profile.vue'
 export default {
+    emits: ["refr"],
+    props: {
+        recv: Object
+    },
     data() {
         return {
             descr: null,
-            list: []
+            list: [],
+            following: []
         }
     },
     methods: {
@@ -17,20 +21,11 @@ export default {
             document.body.style.overflow = "scroll"
             return
         },
-        handleF(w) {
-            if (this.$route.path.slice(-1) == 's') {
-                this.list = toRaw(w.followers)
-                this.descr = "Followers"
-            } else {
-                this.list = toRaw(w.following)
-                this.descr = "Following"
-            }
-        },
 		async refresh() {
 			window.location.reload()
 		},
         async changeFlw(event) {
-            var user = toRaw(event.path[1]).querySelector("#name").text
+            var user = toRaw(event.composedPath()[1]).querySelector("#name").text
             if (event.target.id == "following") {
                 try {
                 var path = `/users/${localStorage.username}/following/${user}/`;
@@ -60,19 +55,75 @@ export default {
                 event.path[0].id = "following"
                 event.path[0].innerHTML = "Following"
             }
+        },
+        async follow(person) {
+            try {
+                var path = `/users/${localStorage.username}/following/${person}/`;
+                let response = await this.$axios.put(path, {});
+                this.res = response.data;
+            }
+            catch (e) {
+                console.log(e);
+                if (e.response.status == 404) {
+                    this.found = false;
+                }
+            }
+            var app = await this.getFollowing()
+            if (app) {this.following=app}
+            else {this.following=[]}
+            this.$emit("refr")
+        },
+        async unfollow(person) {
+            try {
+                var path = `/users/${localStorage.username}/following/${person}/`;
+                let response = await this.$axios.delete(path);
+            }
+            catch (e) {
+                console.log(e);
+                if (e.response.status == 404) {
+                    this.found = false;
+                }
+            }
+            var app = await this.getFollowing()
+            if (app) {this.following=app}
+            else {this.following=[]}
+            this.$emit("refr")
+        },
+        async getFollowing() {
+            try {
+                var response = await this.$axios.get(`/users/${localStorage.username}/following/`)
+                return response.data
+            }
+            catch (e) {
+                console.log(e);
+                if (e.response.status == 404) {
+                    this.found = false;
+                }
+            }
+        },
+        statePerson(per) {
+            if (localStorage.username==per) {return ""}
+            else if (this.following.includes(per)) {return "Following"}
+            return "Followers"
         }
     },
-    components: {
-        Profile
-    },
-    mounted() {
+    async mounted() {
+        if (this.$route.path.slice(-1) == 's') {
+            this.list = this.recv.followers
+            this.descr = "Followers"
+        } else {
+            this.list = this.recv.following
+            this.descr = "Following"
+        }
         document.body.style.overflow = "hidden"
+        var app = await this.getFollowing()
+        if (app) {this.following=app}
+        else {this.following=[]}
     }
 }
 </script>
 
 <template>
-    <Profile @flw="handleF($event)"></Profile>
     <div class="popupF" @click="clickOutside">
         <div class="innerF">
             <slot />
@@ -96,7 +147,9 @@ export default {
             <div class="people">
                 <div v-for="p in list" class="person">
                     <a id="name" :href="'/#/users/'+p+'/'">{{p}}</a>
-                    <button v-if="descr=='Following'" class="acsda" :id="descr.toLowerCase()" @click="changeFlw($event)">{{descr}}</button>
+                    <!-- <button v-if="descr=='Following'" class="acsda" :id="descr.toLowerCase()" @click="changeFlw($event)">{{descr}}</button> -->
+                    <button v-if="statePerson(p)=='Following'" class="acsda" id="following" @click="unfollow(p)">Following</button>
+                    <button v-else-if="statePerson(p)=='Followers'" class="acsda" id="follow" @click="follow(p)">Follow</button>
                 </div>
             </div>
 

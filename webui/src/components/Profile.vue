@@ -3,9 +3,10 @@ import NavBar from './NavBar.vue'
 import PageNotFound from './PageNotFound.vue';
 import InfoProfile from './infoProfile.vue';
 import MediaProfile from './mediaProfile.vue';
+import FlwPopup from './flwPopup.vue'
 
 export default {
-    emits: ["flw"],
+    // emits: ["flw"],
     data() {
         return {
             badr: false,
@@ -20,7 +21,7 @@ export default {
 
                 let response = await this.$axios.get(path);
                 this.sendata = response.data
-                this.$emit('flw', {followers: this.sendata.followers, following: this.sendata.following})
+                // this.$emit('flw', {followers: this.sendata.followers, following: this.sendata.following})
             }
             catch (e) {
                 console.log(e)
@@ -39,7 +40,17 @@ export default {
     mounted() {
         this.getProfile()
     },
-    components: { NavBar, PageNotFound, InfoProfile, MediaProfile },
+    watch: {
+        '$route.params': {
+            handler(newValue) {
+                if (this.$route.path.match(/\/users\/[a-zA-Z]*\/?$/)) {
+                    this.getProfile()
+                }
+            },
+            immediate: true,
+        }
+    },
+    components: { NavBar, PageNotFound, InfoProfile, MediaProfile, FlwPopup },
 }
 
 </script>
@@ -56,6 +67,7 @@ export default {
     <div v-else-if="unauth">
         <h1 style="text-align: center;position: relative;">401 Unauthorized</h1>
     </div>
+    <RouterView :recv="{followers: this.sendata.followers, following: this.sendata.following}" @refr="getProfile"/>
 </template>
 
 <style>

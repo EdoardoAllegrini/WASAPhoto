@@ -10,7 +10,7 @@ export default {
     },
     methods: {
         clickOutside(event) {
-            if (event.composedPath()['0'].className == 'popup') {this.exit()}
+            if (event.composedPath()['0'].className == 'popupP') {this.exit()}
         },
         exit() {
             this.$parent.$data.popupPost = false
@@ -47,8 +47,8 @@ export default {
 </script>
 
 <template>
-    <div class="popup" @click="clickOutside">
-        <div class="inner">
+    <div class="popupP" @click="clickOutside">
+        <div class="innerP">
             <slot />
             <div class="tit">
                 <div class="close" @click="exit">
@@ -185,6 +185,27 @@ input[type="file"] {
     display: flex;
     height: 8%;
     justify-content: center;
+}
+.popupP {
+    overflow: auto;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 99;
+    background-color: rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.innerP {
+    text-align: center;
+    border-radius: 10px;
+    background: #FFF;
+    padding: 0px;
+    width: 700px;
+    height: 600px;
 }
 .popup {
     overflow: auto;

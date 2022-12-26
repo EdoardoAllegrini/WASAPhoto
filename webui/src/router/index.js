@@ -12,8 +12,8 @@ const router = createRouter({
 	routes: [
 		{path: '/session', component: LoginPage},
 		{path: '/', component: LoginPage},
-		{path: '/stream/', component: Stream},
-		// {path: '/stream/', component: Stream, children: [{path: '/users/:username/media/:photo', component: Image}]},
+		// {path: '/stream/', component: Stream},
+		{path: '/stream', component: Stream, children: [{path: '/users/:username/media/:photo', component: Image}]},
 		{path: '/users/:username', component: Profile},
 		{path: '/users/:username/media/:photo', component: Image},
 		{path: '/users/:username/followers', component: FlwPopup},

@@ -3,6 +3,7 @@ import PageNotFound from './PageNotFound.vue'
 import FootPost from './footerPost.vue'
 
 export default {
+    emits: ["likeAct"],
     data() {
         return {
             url: null,
@@ -13,8 +14,11 @@ export default {
         }
     },
     methods: {
+        likeAct() {
+            this.$emit("likeAct")
+        },
         clickOutside(event) {
-            if (event.composedPath()['0'].className == 'popup') {this.exit()}
+            if (event.composedPath()['0'].className == 'popupP') {this.exit()}
         },
         exit() {
             this.$router.push("/stream/")
@@ -41,6 +45,7 @@ export default {
             try {
                 var response = await this.$axios.get(`/users/${this.poster}/media/${this.$route.params.photo}/comments/`)
                 if (response.data) {this.comments = response.data}
+                else {this.comments = []}
             }
             catch (e) {
                 console.log(e)
@@ -72,7 +77,8 @@ export default {
         this.getImage(this.$route.path)
         await this.getComments()
         document.body.style.overflow = "hidden"
-        document.body.getElementsByClassName("swcmt")[0].style.display = "none"
+        var leng = document.body.getElementsByClassName("swcmt").length
+        document.body.getElementsByClassName("swcmt")[leng-1].style.display = "none"
     },
     components: {
         PageNotFound,
@@ -82,8 +88,8 @@ export default {
 </script>
 
 <template>
-    <div class="popup" @click="clickOutside">
-        <div class="inner">
+    <div class="popupP" @click="clickOutside">
+        <div class="innerP">
             <slot />
             <div id="fle">
                 <img id="med" :src="url">
@@ -96,7 +102,7 @@ export default {
                     <div v-for="c in comments" class="jbcr">
                         <div class="ds">
                             <div id="propi">
-                                {{c.username}}
+                                {{c.user}}
                             </div>
                             <span id="dvfi" style="display: inline!important;margin: 0!important;">&nbsp;</span>
                             <div id="cmrt">
@@ -108,7 +114,7 @@ export default {
                         </div>
                     </div>
                 </div>
-                <FootPost :receivedata="{poster: poster, photo: $route.params.photo}" @postedComment="getComments"></FootPost>
+                <FootPost :receivedata="{poster: poster, photo: $route.params.photo}" @postedComment="getComments" @likeAction="likeAct"></FootPost>
             </div>
             <div v-if="badr">
                 <PageNotFound></PageNotFound>

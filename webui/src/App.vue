@@ -8,7 +8,7 @@ export default {}
 <template>
 	<div>
 		<main class="routerView">
-			<RouterView :key="$route.fullPath"/>
+			<RouterView/>
 		</main>
 	</div>
 </template>

@@ -30,7 +30,7 @@ export default {
     methods: {
         async follow() {
             try {
-                var path = `/users/${this.username}/following/${this.receivedata.username}/`;
+                var path = `/users/${this.username}/following/${this.receivedata.User}/`;
                 let response = await this.$axios.put(path, {});
                 this.res = response.data;
             }
@@ -44,7 +44,7 @@ export default {
         },
         async unfollow() {
             try {
-                var path = `/users/${this.username}/following/${this.receivedata.username}/`;
+                var path = `/users/${this.username}/following/${this.receivedata.User}/`;
                 let response = await this.$axios.delete(path);
                 this.res = response.data;
             }
@@ -57,10 +57,10 @@ export default {
             this.$parent.getProfile();
         },
         popFollowers() {
-            this.$router.push(`/users/${this.receivedata.username}/followers`)
+            this.$router.push(`/users/${this.receivedata.User}/followers`)
         },
         popFollowing() {
-            this.$router.push(`/users/${this.receivedata.username}/following`)
+            this.$router.push(`/users/${this.receivedata.User}/following`)
         }
     }
 }
@@ -75,11 +75,11 @@ export default {
 
                 <div class="profile-user-settings">
 
-                    <h1 class="profile-user-name">{{receivedata.username}}</h1>
+                    <h1 class="profile-user-name">{{receivedata.User}}</h1>
 
                 </div>
                 <div class="flw">
-                    <div v-if="!receivedata.username || username==receivedata.username">
+                    <div v-if="!receivedata.User || username==receivedata.User">
                     </div>
                     <button v-else-if="receivedata.followers && receivedata.followers.includes(username)" @click="unfollow" class="btnFlw" id="following">
                         Following

@@ -1,32 +1,32 @@
 <script>
 
 export default {
-    emits: ["postedComment"],
+    emits: ["postedComment", "likeAction"],
     props: {
         receivedata: Object,
     },
     data() {
         return {
             likers: [],
-            comments: []
+            comments: [],
+            stat: ""
         }
     },
     methods: {
-        async showComments() {
-            // TO DO
-            return
-        },
         async handleLike() {
             try {
                 if (this.likers == undefined || this.likers == null || !this.likers.includes(localStorage.username)) {
                     var response = await this.$axios.put(`/users/${this.receivedata.poster}/media/${this.receivedata.photo}/likes/${localStorage.username}/`, {})
                     var _ = response.data
-                    this.likers.push(localStorage.username)
                 } else {
                     var response = await this.$axios.delete(`/users/${this.receivedata.poster}/media/${this.receivedata.photo}/likes/${localStorage.username}/`)
                     var _ = response.data  
-                    this.likers.splice(this.likers.indexOf(localStorage.username));
                 }
+                let l = await this.getLikers() 
+                if (l) {this.likers = l}
+                else {this.likers = []}
+                this.statusImgLik()
+                this.$emit("likeAction")
                 return 
             }
             catch (e) {
@@ -35,14 +35,16 @@ export default {
                     this.badr = true;
                 }
             }
-        } ,
+        },
         statusImgLik() {
             if (this.likers != undefined) {
                 if (this.likers.includes(localStorage.username)) {
-                    return "fill: red;"
+                    this.stat =  "fill: red;"
+                    return
                 }
             }
-            return ""
+            this.stat = ""
+            return
         },
         async postComment(event) {
             var cp = event.composedPath()
@@ -91,6 +93,8 @@ export default {
         async receivedata() {
             let l = await this.getLikers()
             if (l) {this.likers = l}
+            else {this.likers = []}
+            this.statusImgLik()
         }
     }
 }
@@ -100,7 +104,7 @@ export default {
     <div class="descap">
         <div class="sts">
             <div class="hgy" @click="handleLike()">
-                <svg class="svgL kiop"><path :style="statusImgLik()" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"></path></svg>                            
+                <svg class="svgL kiop"><path :style="stat" ref="lkbtn" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"></path></svg>                            
             </div>
             <div class="hgy" @click="showComments">
                 <svg class="svgL kiop" viewBox="0 0 24 24"><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z"></path></svg>                            

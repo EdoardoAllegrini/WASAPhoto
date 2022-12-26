@@ -2,8 +2,8 @@
 import { toRaw } from 'vue'
 import FooterPost from './footerPost.vue'
 import Image from './image.vue'
-
 export default {
+    emits: ["postedComment", "likeAct"],
     props: {
         receivedata: Object,
         varia: false
@@ -29,13 +29,13 @@ export default {
         }
     },
     watch: {
-        async receivedata() {
+        async receivedata(newVal, oldVal) {
             var tmp = toRaw(this.receivedata)
             for (let a in tmp) {
                 let curr = tmp[a]
                 let url = await this.getImage(curr.Ph.URL)
                 this.images[`${curr.Ph.URL}`] = url
-            } 
+            }
         }
     },
     components: {
@@ -59,19 +59,16 @@ export default {
                             <img :src="images[a.Ph.URL]" id="wrte">
                         </a>
                     </div>
-                    <FooterPost :receivedata="{poster: a.Ph.User, photo: a.Ph.ID, capt: a.Ph.Caption}"></FooterPost>
+                    <FooterPost :receivedata="{poster: a.Ph.User, photo: a.Ph.ID, capt: a.Ph.Caption}" @postedComment="$emit('postedComment')"></FooterPost>
                 </div>
             </article>
-
         </section>
     </div>
-    <!-- <router-view></router-view> -->
+    <RouterView @likeAct="$emit('likeAct')"/>
 </template>
 
 <style>
-Portal {
-    display: none;
-}
+
 .hrFeed {
     margin: 5px;
 }

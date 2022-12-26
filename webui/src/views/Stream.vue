@@ -2,6 +2,7 @@
 // import {identifier} from './LoginPage.vue'
 import NavBar from '../components/NavBar.vue'
 import Feed from '../components/feed.vue'
+
 export default {
     data() {
         return {
@@ -27,14 +28,15 @@ export default {
         this.getStream();
     },
 	components: {
-		NavBar, Feed
-	}
+        NavBar,
+        Feed
+    }
 }
 </script>
 
 <template>
 	<NavBar></NavBar>
-    <Feed :receivedata="sendata"></Feed>
+    <Feed :receivedata="sendata" @likeAct="getStream"></Feed>
 </template>
 
 <style>

@@ -1,7 +1,7 @@
 package database
 
-func (db *appdbimpl) GetPhotos(username string) ([]Photo, error) {
-	rows, err := db.c.Query("SELECT id, username, caption, timestamp FROM media WHERE username=? ORDER BY timestamp DESC;", username)
+func (db *appdbimpl) GetPhotos(user uint64) ([]Photo, error) {
+	rows, err := db.c.Query("SELECT id, users.username, caption, timestamp FROM media WHERE media.user=? and users.id=media.user ORDER BY timestamp DESC;", user)
 
 	if err != nil {
 		return nil, err

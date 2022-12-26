@@ -69,14 +69,14 @@ func (rt *_router) unfollowUser(w http.ResponseWriter, r *http.Request, ps httpr
 		ctx.Logger.WithError(err).Error("can't get the user Auth")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil || dbuserAuth.Username != username {
+	} else if dbuserAuth == nil || dbuserAuth.ID != dbuser.ID {
 		// The user does not exists, authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	err = rt.db.RemoveFollow(dbuser.Username, dbuserFo.Username)
+	err = rt.db.RemoveFollow(dbuser.ID, dbuserFo.ID)
 	if err != nil {
 		if errors.Is(err, database.ErrUserBanned) {
 			// User to follow has banned username

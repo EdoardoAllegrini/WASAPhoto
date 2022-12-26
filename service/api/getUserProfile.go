@@ -56,7 +56,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Check if username in path has banned user authenticated
 	// (done with separated query cause otherwise I can't higlight the difference between profile blank and user banned which all returns rows empty)
-	c, err := rt.db.CheckBanned(dbuser.Username, dbuserAuth.Username)
+	c, err := rt.db.CheckBanned(dbuser.ID, dbuserAuth.ID)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
@@ -71,7 +71,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	profile, err := rt.db.GetProfile(dbuser.Username, dbuserAuth.Username)
+	profile, err := rt.db.GetProfile(dbuser.ID, dbuserAuth.ID)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
@@ -79,6 +79,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	profile.User = dbuser.Username
 
 	// Send the output to the user.
 	w.Header().Set("Content-Type", "application/json")

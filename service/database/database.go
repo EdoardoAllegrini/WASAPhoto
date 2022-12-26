@@ -41,6 +41,7 @@ var ErrImageDoesNotExist = errors.New("image does not exist")
 var ErrUserBanned = errors.New("user banned")
 
 type User struct {
+	ID         uint64 `json:"id"`
 	Username   string `json:"username"`
 	Identifier string `json:"identifier"`
 }
@@ -48,7 +49,7 @@ type User struct {
 type Comment struct {
 	ID        uint64 `json:"id"`
 	Image     uint64 `json:"image"`
-	User      string `json:"username"`
+	User      string `json:"user"`
 	Text      string `json:"text"`
 	Timestamp string `json:"timestamp"`
 }
@@ -62,7 +63,7 @@ type Photo struct {
 }
 
 type Profile struct {
-	User      string  `json:"username"`
+	User      string
 	Photos    []Photo `json:"photos"`
 	N_Photos  int
 	Followers []string `json:"followers"`
@@ -89,74 +90,71 @@ type AppDatabase interface {
 	// GetUserFromIdentifier returns the user in the database with identifier given, if exists
 	GetUserFromIdentifier(string) (*User, error)
 
-	// SetMyUserName changes the username of User to string given in input
-	SetMyUserName(User, string) (*User, error)
+	// SetMyUserName changes the username of User given to string given in input
+	SetMyUserName(uint64, string) (*User, error)
 
 	// CreateMedia inserts the photo and its caption in the db
-	CreateMedia(string, string, []byte) (uint64, error)
+	CreateMedia(uint64, string, []byte) (uint64, error)
 
-	// GetImageFromIDPoster returns the image in the database posted by username with id given, if exists
-	GetImageFromIDPoster(uint64, string, string) ([]byte, error)
+	// GetImageFromIDPoster returns the image in the database posted by user with id given, if exists
+	GetImageFromIDPoster(uint64, uint64, uint64) ([]byte, error)
 
-	// GetImagePoster returns the username of the user that posted photo with id given, if exists
-	GetImagePoster(uint64) (string, error)
-
-	// CheckImagePoster returns true if poster posted image, else false
-	CheckImagePoster(uint64, string) (bool, error)
+	// GetImagePoster returns the id of the user that posted photo with id given, if it has benn posted by username given
+	CheckImagePoster(uint64, string) (uint64, error)
 
 	// CheckBanned returns true if username has banned userBanned
-	CheckBanned(string, string) (bool, error)
+	CheckBanned(uint64, uint64) (bool, error)
 
 	// GetLikes returns the list of users that like the photo given in input
-	GetLikes(uint64, string) ([]string, error)
+	GetLikes(uint64, uint64) ([]string, error)
 
 	// DeleteImage deletes the image in the database with id given, if exists
 	DeleteImage(uint64) error
 
 	// SetLike is a function that let user relative to userLike set a like to the photo as photo-id posted by user given in path
-	SetLike(uint64, string, string) error
+	SetLike(uint64, uint64, uint64) error
 
-	// SetLike is a function that let user relative to userLike remove the like to the photo as photo-id posted by user given in path
-	RemoveLike(uint64, string, string) error
+	// RemoveLike is a function that let user relative to userLike remove the like to the photo as photo-id posted by user given in path
+	RemoveLike(uint64, uint64, uint64) error
 
 	// CreateFollow is a function that adds a new follower (userFollow) to username profile
-	CreateFollow(string, string) error
+	CreateFollow(uint64, uint64) error
 
 	// RemoveFollow is a function that removes the follower (userFollow) to username profile
-	RemoveFollow(string, string) error
+	RemoveFollow(uint64, uint64) error
 
 	// GetFollowers returns the list of users followed by username
-	GetFollowing(string, string) ([]string, error)
+	GetFollowing(uint64, uint64) ([]string, error)
 
 	// GetFollowers returns the list of users that follow username
-	GetFollowers(string, string) ([]string, error)
+	GetFollowers(uint64, uint64) ([]string, error)
 
 	// CreateBan is a function that adds userFollow to users banned by username
-	CreateBan(string, string) error
+	CreateBan(uint64, uint64) error
 
 	// RemoveBan is a function that removes the banned userFollow to username banned users
-	RemoveBan(string, string) error
+	RemoveBan(uint64, uint64) error
 
 	// GetBanned returns the list of users banned by username
-	GetBanned(string) ([]string, error)
+	GetBanned(uint64) ([]string, error)
 
 	// Comment adds a comment to the photo given, returns the id of the comment
-	Comment(string, uint64, string, string) (uint64, error)
+	Comment(uint64, uint64, uint64, string) (uint64, error)
 
 	// GetComments returns all the comment of the photo given
-	GetComments(uint64, string) ([]Comment, error)
+	GetComments(uint64, uint64) ([]Comment, error)
 
 	// RemoveComment removes the comment given from the photo in path
 	RemoveComment(uint64, uint64) error
 
 	// GetPhotos returns the photos in reverse chronological order of the user given in input
-	GetPhotos(string) ([]Photo, error)
+	GetPhotos(uint64) ([]Photo, error)
 
 	// GetProfile returns the profile of user given as second argument if user authenticated (first argument) is not banned by him
-	GetProfile(string, string) (*Profile, error)
+	GetProfile(uint64, uint64) (*Profile, error)
 
 	// GetStream returns the list of articles  in reverse chronological order (photo, comments and likes) of all users followed by usermame in input
-	GetStream(string) ([]Article, error)
+	GetStream(uint64) ([]Article, error)
 
 	Ping() error
 }
@@ -186,7 +184,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE users (username TEXT NOT NULL PRIMARY KEY, identifier TEXT NOT NULL UNIQUE);`
+		sqlStmt := `CREATE TABLE users (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, identifier TEXT NOT NULL UNIQUE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -195,7 +193,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='media';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE media (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, caption TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, image BLOB NOT NULL, FOREIGN KEY (username) REFERENCES users(username));`
+		sqlStmt := `CREATE TABLE media (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, user INTEGER NOT NULL, caption TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, image BLOB NOT NULL, FOREIGN KEY (user) REFERENCES users(id));`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -204,7 +202,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='likes';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE likes (image INTEGER NOT NULL, username TEXT NOT NULL, PRIMARY KEY (image, username), FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE);`
+		sqlStmt := `CREATE TABLE likes (image INTEGER NOT NULL, user INTEGER NOT NULL, PRIMARY KEY (image, user), FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -213,7 +211,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='follow';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE follow (username TEXT NOT NULL, follow TEXT NOT NULL, PRIMARY KEY (username, follow), FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE, FOREIGN KEY (follow) REFERENCES users(username) ON DELETE CASCADE);`
+		sqlStmt := `CREATE TABLE follow (user INTEGER NOT NULL, follow INTEGER NOT NULL, PRIMARY KEY (user, follow), FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (follow) REFERENCES users(id) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -222,7 +220,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='ban';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE ban (username TEXT NOT NULL, ban TEXT NOT NULL, PRIMARY KEY (username, ban), FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE, FOREIGN KEY (ban) REFERENCES users(username) ON DELETE CASCADE);`
+		sqlStmt := `CREATE TABLE ban (user INTEGER NOT NULL, ban INTEGER NOT NULL, PRIMARY KEY (user, ban), FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (ban) REFERENCES users(id) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -231,7 +229,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comments';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE comments (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, image INTEGER NOT NULL, username TEXT NOT NULL, comment TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE);`
+		sqlStmt := `CREATE TABLE comments (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, image INTEGER NOT NULL, user INTEGER NOT NULL, comment TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (image) REFERENCES media(id) ON DELETE CASCADE, FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
@@ -243,8 +241,8 @@ func New(db *sql.DB) (AppDatabase, error) {
 		sqlStmt := `CREATE TRIGGER followBan
 		AFTER INSERT ON ban 
 		BEGIN
-			DELETE FROM follow WHERE NEW.username=follow.username and NEW.ban=follow.follow;
-			DELETE FROM follow WHERE NEW.username=follow.follow and NEW.ban=follow.username;
+			DELETE FROM follow WHERE NEW.user=follow.user and NEW.ban=follow.follow;
+			DELETE FROM follow WHERE NEW.user=follow.follow and NEW.ban=follow.user;
 		END;`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {

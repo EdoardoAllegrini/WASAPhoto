@@ -46,14 +46,14 @@ func (rt *_router) likePhoto(w http.ResponseWriter, r *http.Request, ps httprout
 		// fmt.Println("[-] Photo-id in path is not valid")
 		return
 	}
-	c, err := rt.db.CheckImagePoster(photoid, dbuser.Username)
+	dbposterID, err := rt.db.CheckImagePoster(photoid, dbuser.Username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
 		ctx.Logger.WithError(err).Error("can't get the image")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if !c {
+	} else if dbposterID == 0 {
 		// Photo with photo-id is not present in the db as a photo posted by username in path
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusBadRequest)
@@ -86,7 +86,7 @@ func (rt *_router) likePhoto(w http.ResponseWriter, r *http.Request, ps httprout
 		ctx.Logger.WithError(err).Error("can't get the user Auth")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil || dbuserAuth.Username != userLike {
+	} else if dbuserAuth == nil || dbuserAuth.ID != dbuserLiker.ID {
 		// Authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
@@ -110,7 +110,7 @@ func (rt *_router) likePhoto(w http.ResponseWriter, r *http.Request, ps httprout
 	// 	return
 	// }
 
-	errLike := rt.db.SetLike(photoid, dbuser.Username, dbuserAuth.Username)
+	errLike := rt.db.SetLike(photoid, dbuser.ID, dbuserAuth.ID)
 	if errLike != nil {
 		if errors.Is(errLike, database.ErrUserBanned) {
 			// User to follow has banned username

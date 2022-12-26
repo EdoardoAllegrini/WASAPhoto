@@ -55,7 +55,7 @@ func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httproute
 
 	// Check if username in path has banned user authenticated
 	// (done with separated query cause if condition on line up is true I can avoid to check that condition every query)
-	c, errC := rt.db.CheckBanned(dbuser.Username, dbuserAuth.Username)
+	c, errC := rt.db.CheckBanned(dbuser.ID, dbuserAuth.ID)
 	if errC != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
@@ -80,21 +80,21 @@ func (rt *_router) getLikes(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 	// Query not unified in GetLikes because otherwise I can't distinguish between photo with no like and photo not in the db
-	c, err = rt.db.CheckImagePoster(photoid, dbuser.Username)
+	dbposterID, err := rt.db.CheckImagePoster(photoid, dbuser.Username)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.
 		ctx.Logger.WithError(err).Error("can't get the user")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if !c {
+	} else if dbposterID == 0 {
 		// Photo with photo-id is not present in the db as a photo posted by username in path
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	dbLikes, err := rt.db.GetLikes(photoid, dbuserAuth.Username)
+	dbLikes, err := rt.db.GetLikes(photoid, dbuserAuth.ID)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

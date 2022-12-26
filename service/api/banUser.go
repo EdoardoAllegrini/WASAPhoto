@@ -43,6 +43,12 @@ func (rt *_router) banUser(w http.ResponseWriter, r *http.Request, ps httprouter
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	if userBan == username {
+		// Can't ban yourself
+		// Reject the action indicating an error on the client side.
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	dbuserBa, errBa := rt.db.GetUserFromUsername(userBan)
 	if errBa != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
@@ -56,12 +62,7 @@ func (rt *_router) banUser(w http.ResponseWriter, r *http.Request, ps httprouter
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if userBan == username {
-		// Can't ban yourself
-		// Reject the action indicating an error on the client side.
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+
 	// Get Authentication Token from Header
 	auth_token := parseAuthToken(r)
 
@@ -73,14 +74,14 @@ func (rt *_router) banUser(w http.ResponseWriter, r *http.Request, ps httprouter
 		ctx.Logger.WithError(err).Error("can't get the user Auth")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil || dbuserAuth.Username != username {
+	} else if dbuserAuth == nil || dbuserAuth.ID != dbuser.ID {
 		// The user does not exists, authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	err = rt.db.CreateBan(dbuser.Username, dbuserBa.Username)
+	err = rt.db.CreateBan(dbuser.ID, dbuserBa.ID)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

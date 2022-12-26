@@ -1,9 +1,9 @@
 package database
 
-func (db *appdbimpl) SetLike(photoid uint64, poster string, username string) error {
-	res, err := db.c.Exec(`INSERT INTO likes (image, username) SELECT ?, ? WHERE NOT EXISTS (SELECT * FROM ban WHERE ban.username=? and ban.ban=?);`, photoid, username, poster, username)
+func (db *appdbimpl) SetLike(photoid uint64, poster uint64, user uint64) error {
+	res, err := db.c.Exec(`INSERT INTO likes (image, user) SELECT ?, ? WHERE NOT EXISTS (SELECT * FROM ban WHERE ban.user=? and ban.ban=?);`, photoid, user, poster, user)
 	if err != nil {
-		if err.Error() == "UNIQUE constraint failed: likes.image, likes.username" {
+		if err.Error() == "UNIQUE constraint failed: likes.image, likes.user" {
 			// TO DO: con la put dovrei poter rimuovere questo check err.Error() perche non
 			// dovrebbe essere possibile mettere like piu di una volta alla stessa immagine con lo stesso profilo
 			return nil

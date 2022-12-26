@@ -58,7 +58,7 @@ func (rt *_router) deletePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		ctx.Logger.WithError(err).Error("can't get the user")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil || username != dbuserAuth.Username {
+	} else if dbuserAuth == nil || dbuser.ID != dbuserAuth.ID {
 		// Authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)

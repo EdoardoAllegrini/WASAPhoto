@@ -45,14 +45,14 @@ func (rt *_router) getBanned(w http.ResponseWriter, r *http.Request, ps httprout
 		ctx.Logger.WithError(err).Error("can't get the user Auth")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil || dbuser.Username != dbuserAuth.Username {
+	} else if dbuserAuth == nil || dbuser.ID != dbuserAuth.ID {
 		// The user does not exists, authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	dblist, err := rt.db.GetBanned(dbuser.Username)
+	dblist, err := rt.db.GetBanned(dbuser.ID)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

@@ -49,7 +49,7 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		ctx.Logger.WithError(err).Error("can't get the user")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuser == nil || dbuser.Username != username {
+	} else if dbuser == nil || dbuser.ID != dbuserPath.ID {
 		// Authentication not valid.
 		// Reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusUnauthorized)
@@ -84,7 +84,7 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	imageID, err := rt.db.CreateMedia(dbuser.Username, photoCaption, fileBytes)
+	imageID, err := rt.db.CreateMedia(dbuser.ID, photoCaption, fileBytes)
 	if err != nil {
 		// In this case, we have an error on our side. Log the error (so we can be notified) and send a 500 to the user
 		// Note: we are using the "logger" inside the "ctx" (context) because the scope of this issue is the request.

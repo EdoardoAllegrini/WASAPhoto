@@ -49,7 +49,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		ctx.Logger.WithError(err).Error("can't get the user")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbuserAuth == nil || dbuserAuth.Username != dbuser.Username {
+	} else if dbuserAuth == nil || dbuserAuth.ID != dbuser.ID {
 		// Authentication not valid
 		// User authenticated doesn't exist or doesn't matches user in path.
 		// Reject the action indicating an error on the client side.
@@ -73,7 +73,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	dbNewUser, err := rt.db.SetMyUserName(*dbuser, userBody.Username)
+	dbNewUser, err := rt.db.SetMyUserName(dbuser.ID, userBody.Username)
 	if errors.Is(err, database.ErrUsernameNotAvailable) {
 		// The username in body is not available, reject the action indicating an error on the client side.
 		w.WriteHeader(http.StatusConflict)

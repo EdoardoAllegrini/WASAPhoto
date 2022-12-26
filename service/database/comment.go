@@ -1,8 +1,8 @@
 package database
 
-func (db *appdbimpl) Comment(phPoster string, photoid uint64, username string, comment string) (uint64, error) {
-	res, err := db.c.Exec(`INSERT INTO comments (image, username, comment) SELECT ?, ?, ? WHERE NOT EXISTS (SELECT * FROM ban WHERE username=? and ban=?);`,
-		photoid, username, comment, phPoster, username)
+func (db *appdbimpl) Comment(phPoster uint64, photoid uint64, user uint64, comment string) (uint64, error) {
+	res, err := db.c.Exec(`INSERT INTO comments (image, user, comment) SELECT ?, ?, ? WHERE NOT EXISTS (SELECT * FROM ban WHERE ban.user=? and ban.ban=?);`,
+		photoid, user, comment, phPoster, user)
 	if err != nil {
 		return 0, err
 	}

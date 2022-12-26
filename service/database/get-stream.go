@@ -4,8 +4,8 @@ import (
 	"strconv"
 )
 
-func (db *appdbimpl) GetStream(user string) ([]Article, error) {
-	qu := "SELECT media.id, media.username, media.caption, media.timestamp FROM media, follow WHERE follow.username=? and media.username=follow.follow and NOT EXISTS (select * from ban where ban.username=follow.follow and ban.ban=follow.username) ORDER BY timestamp DESC;"
+func (db *appdbimpl) GetStream(user uint64) ([]Article, error) {
+	qu := "SELECT media.id, users.username, media.caption, media.timestamp FROM media, follow, users WHERE follow.user=? and media.user=follow.follow and users.id=media.user and NOT EXISTS (select * from ban where ban.user=follow.follow and ban.ban=follow.user) ORDER BY timestamp DESC;"
 	rows, err := db.c.Query(qu, user)
 
 	if err != nil {

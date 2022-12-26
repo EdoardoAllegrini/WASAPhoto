@@ -1,7 +1,7 @@
 package database
 
-func (db *appdbimpl) CheckBanned(username string, userBanned string) (bool, error) {
-	check, err := db.c.Query(`SELECT * FROM ban WHERE username=? and ban=?;`, username, userBanned)
+func (db *appdbimpl) CheckBanned(user uint64, userBanned uint64) (bool, error) {
+	check, err := db.c.Query(`SELECT * FROM ban WHERE user=? and ban=?;`, user, userBanned)
 
 	if err != nil {
 		return false, err

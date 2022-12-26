@@ -11,6 +11,7 @@ const (
 )
 
 type User struct {
+	ID         uint64 `json:"id"`
 	Username   string `json:"username"`
 	Identifier string `json:"identifier"`
 }
@@ -18,7 +19,7 @@ type User struct {
 type Comment struct {
 	ID        uint64 `json:"id"`
 	Image     uint64 `json:"image"`
-	User      string `json:"username"`
+	User      string `json:"user"`
 	Text      string `json:"text"`
 	Timestamp string `json:"timestamp"`
 }
@@ -26,13 +27,13 @@ type Comment struct {
 type Photo struct {
 	ID        uint64 `json:"id"`
 	URL       string `json:"url"`
-	User      string `json:"username"`
+	User      string `json:"user"`
 	Timestamp string `json:"timestamp"`
 	Caption   string `json:"caption"`
 }
 
 type Profile struct {
-	User      string  `json:"username"`
+	User      string  `json:"user"`
 	Photos    []Photo `json:"photos"`
 	N_Photos  int
 	Followers []string `json:"followers"`
@@ -54,6 +55,7 @@ type Article struct {
 // Also, in this way the database package is freely usable by other packages without the assumption that structs from
 // the database should somehow be JSON-serializable (or, in general, serializable).
 func (u *User) FromDatabase(user database.User) {
+	u.ID = user.ID
 	u.Username = user.Username
 	u.Identifier = user.Identifier
 }
@@ -61,6 +63,7 @@ func (u *User) FromDatabase(user database.User) {
 // ToDatabase returns the user in a database-compatible representation
 func (u *User) ToDatabase() database.User {
 	return database.User{
+		ID:         u.ID,
 		Username:   u.Username,
 		Identifier: u.Identifier,
 	}

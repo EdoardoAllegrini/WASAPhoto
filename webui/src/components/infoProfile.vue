@@ -23,14 +23,28 @@ export default {
         return {
             username: localStorage.username,
             flw: 0,
-            ban: {
-                show: false
+            banObj: {
+                show: false,
+                text: "",
+                list: []
             }
         };
     },
-    mounted() {
+    async mounted() {
+        this.banObj.list = await this.getBanned()
+        this.checkShowBan()
     },
     methods: {
+        async getBanned() {
+            try {
+                var response = await this.$axios.get(`/users/${localStorage.username}/ban/`)
+                if (response.data) return response.data
+                else return []
+            } catch (e) {
+                console.log(e)
+                return
+            }
+        },
         async follow() {
             try {
                 var path = `/users/${this.username}/following/${this.receivedata.User}/`;
@@ -65,13 +79,49 @@ export default {
         popFollowing() {
             this.$router.push(`/users/${this.receivedata.User}/following`)
         },
-        async banPop() {
-            this.ban.show = !this.ban.show
-            var response = await this.$axios.get(`/users/${localStorage.username}/ban/`)
-            if (response.data.includes(this.receivedata.User)) {
-                console.log("bannato")
+       async ban() {
+            try {
+                var path = `/users/${localStorage.username}/ban/${this.receivedata.User}/`;
+                let response = await this.$axios.put(path, {});
+                this.res = response.data;
+            }
+            catch (e) {
+                console.log(e);
+                if (e.response.status == 404) {
+                    this.found = false;
+                }
+            }
+        },
+        async unban() {
+            try {
+                var path = `/users/${localStorage.username}/ban/${this.receivedata.User}/`;
+                let response = await this.$axios.delete(path);
+                this.res = response.data;
+            }
+            catch (e) {
+                console.log(e);
+                if (e.response.status == 404) {
+                    this.found = false;
+                }
+            }
+        },
+        async handleBan() {
+            if (this.banObj.text == "Ban") {
+                this.ban()
+            } else if (this.banObj.text == "Unban") {
+                this.unban()
+            }
+            this.banObj.show = false
+            this.banObj.list = await this.getBanned()
+            this.checkShowBan()
+            window.location.reload()
+        },
+        banPop() {this.banObj.show = !this.banObj.show},
+        checkShowBan() {
+            if (this.banObj.list.includes(this.receivedata.User)) {
+                this.banObj.text = "Unban"
             } else {
-                console.log("non bannato")
+                this.banObj.text = "Ban"
             }
         }
     }
@@ -91,7 +141,7 @@ export default {
 
                 </div>
                 <div class="flw">
-                    <div v-if="!receivedata.User || username==receivedata.User">
+                    <div v-if="banObj.list.includes(receivedata.User) || !receivedata.User || username==receivedata.User">
                     </div>
                     <button v-else-if="receivedata.followers && receivedata.followers.includes(username)" @click="unfollow" class="btnFlw" id="following">
                         Following
@@ -113,8 +163,8 @@ export default {
                     <div class="hfd" @click="banPop">
                         <svg color="#262626" fill="#262626" height="32" role="img" viewBox="0 0 24 24" width="32"><circle cx="12" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle></svg>
                     </div>
-                    <div v-if="ban.show" class="menu">
-                        <button v-if="ban.Banned==true" id="sout" type="submit" @click="ban">Ban</button>
+                    <div v-if="banObj.show" class="asfgs" @click="handleBan">
+                        {{banObj.text}}
                     </div>
                 </div>
             </div>
@@ -124,6 +174,23 @@ export default {
 </template>
 
 <style>
+.asfgs:hover {
+    color: gray;
+}
+.asfgs {
+    top: 56px;
+    position: absolute;
+    right: -12px;
+    background-color: rgba(var(--bs-dark-rgb), var(--bs-bg-opacity)) !important;
+    --bs-bg-opacity: 1;
+    border-radius: 5px;
+    width: 50px;
+    height: 40px;
+    color: white;
+    text-align: center;
+    line-height: 40px;
+    cursor: pointer;
+}
 #info {
     display: flex;
 }

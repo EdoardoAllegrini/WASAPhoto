@@ -1,12 +1,10 @@
 <script>
 import { toRaw } from 'vue'
 import FooterPost from './footerPost.vue'
-import Image from './image.vue'
 export default {
     emits: ["postedComment", "likeAct"],
     props: {
         receivedata: Object,
-        varia: false
     },
     data() {
         return {
@@ -39,8 +37,7 @@ export default {
         }
     },
     components: {
-        FooterPost,
-        Image
+        FooterPost
     }
 }
 </script>

@@ -3,7 +3,6 @@ import NavBar from './NavBar.vue'
 import PageNotFound from './PageNotFound.vue';
 import InfoProfile from './infoProfile.vue';
 import MediaProfile from './mediaProfile.vue';
-import FlwPopup from './flwPopup.vue'
 
 export default {
     // emits: ["flw"],
@@ -21,6 +20,7 @@ export default {
 
                 let response = await this.$axios.get(path);
                 this.sendata = response.data
+                this.badr = false
                 // this.$emit('flw', {followers: this.sendata.followers, following: this.sendata.following})
             }
             catch (e) {
@@ -50,7 +50,7 @@ export default {
             immediate: true,
         }
     },
-    components: { NavBar, PageNotFound, InfoProfile, MediaProfile, FlwPopup },
+    components: { NavBar, PageNotFound, InfoProfile, MediaProfile },
 }
 
 </script>

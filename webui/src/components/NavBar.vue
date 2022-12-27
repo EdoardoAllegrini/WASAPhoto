@@ -43,7 +43,11 @@ export default {
 			this.$router.push("/")
 		}, 
 		clickOutside(event) {
-            if (event.composedPath()['0'].className == 'popup') {this.us.sh=false}
+            if (event.composedPath()['0'].className == 'popup') {
+				this.us.sh=false
+				this.us.notAv = false
+				this.menu = false
+			}
         },
 		async changeUsername() {
 			try {
@@ -58,7 +62,7 @@ export default {
 			catch (e) {
 				console.log(e);
                     if (e.response.status == 409) {
-                        this.notAv = true
+                        this.us.notAv = true
                     }
 			}
 		}
@@ -91,7 +95,7 @@ export default {
 					<div class="l-part">
 						<input type="text" v-model="us.usToCh" placeholder="Username" class="input-1" required/>
 						<input type="button" @click="changeUsername" value="Change" class="mybtn" />
-						<div v-if="us.notAv" class="badReq">
+						<div v-if="us.notAv" class="badReq" style="top: 14px;">
 							Username not available
 						</div>					
 					</div>
@@ -179,6 +183,7 @@ export default {
 	}
 
 	.menu {
+		top: 48px;
 		position: absolute;
 		right: 1px;
 		background-color: rgba(var(--bs-dark-rgb), var(--bs-bg-opacity)) !important;

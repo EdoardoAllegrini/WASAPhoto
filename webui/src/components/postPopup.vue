@@ -76,7 +76,7 @@ export default {
                 <label class="containerPost" id="file" for="grio">
                     Select File
                 </label>
-                <input type="file" @change="handleChange" accept="image/png, image/jpeg" id="grio">
+                <input type="file" @change="handleChange" accept="image/png, image/jpeg, image/jpg" id="grio">
                 <button v-if="phSel" class="containerPost" id="send" @click="postPhoto">post</button>
             </div>
 

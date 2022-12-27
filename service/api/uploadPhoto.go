@@ -9,8 +9,20 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-const MaxMemory int64 = 1000000
+func isIn(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
 
+const MaxMemory int64 = 500000
+
+func getSupportedFiles() []string {
+	return []string{"image/png", "image/jpeg", "image/jpg"}
+}
 func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Get the username in path
 	username := ps.ByName("username")
@@ -68,7 +80,7 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	photoFile, _, err := r.FormFile("photoFile")
+	photoFile, hea, err := r.FormFile("photoFile")
 
 	if err != nil {
 		// The image file is not valid
@@ -76,6 +88,13 @@ func (rt *_router) uploadPhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	defer photoFile.Close()
+	fileType := hea.Header.Get("Content-Type")
+	if !isIn(fileType, getSupportedFiles()) {
+		// The image file is not valid
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	// fmt.Println(filepath.Ext(fileHeader.Filename))
 	// read image got into a byte array
 	fileBytes, err := io.ReadAll(photoFile)

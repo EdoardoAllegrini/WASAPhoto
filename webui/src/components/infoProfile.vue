@@ -22,7 +22,10 @@ export default {
     data() {
         return {
             username: localStorage.username,
-            flw: 0
+            flw: 0,
+            ban: {
+                show: false
+            }
         };
     },
     mounted() {
@@ -61,6 +64,15 @@ export default {
         },
         popFollowing() {
             this.$router.push(`/users/${this.receivedata.User}/following`)
+        },
+        async banPop() {
+            this.ban.show = !this.ban.show
+            var response = await this.$axios.get(`/users/${localStorage.username}/ban/`)
+            if (response.data.includes(this.receivedata.User)) {
+                console.log("bannato")
+            } else {
+                console.log("non bannato")
+            }
         }
     }
 }
@@ -90,12 +102,20 @@ export default {
                 </div>
                 <div class="profile-stats">
 
-                    <ul>
+                    <ul style="margin: 0;">
                         <li @click="popFollowers"><span class="profile-stat-count">{{getFollowers}}</span> followers</li>
                         <li @click="popFollowing"><span class="profile-stat-count">{{getFollowing}}</span> following</li>
                         <li style="cursor: text;">Post: <span class="profile-stat-count">{{receivedata.N_Photos}}</span></li>
                     </ul>
 
+                </div>
+                <div class="cadaf">
+                    <div class="hfd" @click="banPop">
+                        <svg color="#262626" fill="#262626" height="32" role="img" viewBox="0 0 24 24" width="32"><circle cx="12" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle></svg>
+                    </div>
+                    <div v-if="ban.show" class="menu">
+                        <button v-if="ban.Banned==true" id="sout" type="submit" @click="ban">Ban</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -104,7 +124,18 @@ export default {
 </template>
 
 <style>
-
+#info {
+    display: flex;
+}
+.hfd svg {
+    color: rgb(38, 38, 38);
+    fill: rgb(38, 38, 38);
+}
+.hfd {
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+}
 body {
     font-family: "Open Sans", Arial, sans-serif;
     min-height: 100vh;
@@ -165,7 +196,6 @@ body {
 
 .profile-stats {
     float: left;
-    width: 90%;
 }
 
 .profile-user-name {
@@ -193,13 +223,14 @@ body {
 @supports (display: grid) {
     .profile {
         display: grid;
-        grid-template-columns: 1fr 2fr 3fr;
-        grid-template-rows: repeat(3, auto);
+        grid-template-columns: 1fr 1fr 3fr 1fr;
+        grid-template-rows: repeat(4, auto);
         grid-column-gap: 1rem;
         align-items: center;
         position: relative;
         top: 15px;
         text-align: center;
+        justify-items: end;
     }
 }
 

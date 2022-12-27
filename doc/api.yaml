@@ -143,7 +143,7 @@ components:
       description: The photo file
       pattern: ".*"
       minLength: 0
-      maxLength: 1000000
+      maxLength: 500000
     photoUrl:
       type: string
       pattern: "http://.*"
@@ -329,7 +329,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              description: An object containing the photo file and its caption
+              description: An object containing the photo file (image/png, image/jpeg, image/jpg) and its caption
               type: object
               properties:
                 photoCaption: {$ref: "#/components/schemas/photoCaption"}

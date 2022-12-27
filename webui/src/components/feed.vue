@@ -1,6 +1,8 @@
 <script>
 import { toRaw } from 'vue'
 import FooterPost from './footerPost.vue'
+import Imagecomp from './image.vue'
+
 export default {
     emits: ["postedComment", "likeAct"],
     props: {
@@ -9,9 +11,24 @@ export default {
     data() {
         return {
             images: [],
+            pop: {
+                show: false,
+                userPoster: "",
+                photoId: ""
+            }
         }
     },
     methods: {
+        handleClick(article) {
+            this.pop.userPoster = article.Ph.User
+            this.pop.photoId = article.Ph.ID
+            this.pop.show = true
+            history.pushState(
+                {},
+                null,
+                `/#/users/${this.pop.userPoster}/media/${this.pop.photoId}/`
+            )
+        },
         async getImage(path) {
             try {
                 var response = await this.$axios.get(path, { responseType: 'blob' });
@@ -24,6 +41,15 @@ export default {
                 }
                 return
             }
+        },
+        closePop() {
+            document.body.style.overflow = "scroll"
+            this.pop.show = false
+            history.pushState(
+                {},
+                null,
+                `/#/stream`
+            )
         }
     },
     watch: {
@@ -37,7 +63,8 @@ export default {
         }
     },
     components: {
-        FooterPost
+        FooterPost,
+        Imagecomp
     }
 }
 </script>
@@ -52,16 +79,20 @@ export default {
                     </div>
                     <hr class="hrFeed">
                     <div class="ph">
-                        <a :href="'/#'+a.Ph.URL" class="sdsv">
+                        <!-- <a :href="'/#'+a.Ph.URL" class="sdsv">
+                            <img :src="images[a.Ph.URL]" id="wrte">
+                        </a> -->
+                        <a @click="handleClick(a)" class="sdsv">
                             <img :src="images[a.Ph.URL]" id="wrte">
                         </a>
                     </div>
-                    <FooterPost :receivedata="{poster: a.Ph.User, photo: a.Ph.ID, capt: a.Ph.Caption}" @postedComment="$emit('postedComment')"></FooterPost>
+                    <FooterPost :receivedata="{poster: a.Ph.User, photo: a.Ph.ID, capt: a.Ph.Caption}" @postedComment="$emit('postedComment')" @showPop="handleClick(a)"></FooterPost>
                 </div>
             </article>
         </section>
     </div>
-    <RouterView @likeAct="$emit('likeAct')"/>
+    <Imagecomp v-if="pop.show" :userPoster="pop.userPoster" :photoId="pop.photoId" @likeAct="$emit('likeAct')" @exit="closePop"/>
+    <!-- <RouterView @likeAct="$emit('likeAct')"/> -->
 </template>
 
 <style>
@@ -161,6 +192,7 @@ export default {
     position: relative;
     display: flex;
     justify-content: center;
+    cursor: pointer;
 }
 #wrte {
     width: 100%;

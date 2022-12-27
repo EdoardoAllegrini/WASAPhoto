@@ -1,9 +1,14 @@
 <script>
 import PageNotFound from './PageNotFound.vue'
 import FootPost from './footerPost.vue'
+import NavBar from './NavBar.vue'
 
 export default {
-    emits: ["postedComment","likeAct"],
+    props: {
+        userPoster: String,
+        photoId: Number
+    },
+    emits: ["likeAct","exit"],
     data() {
         return {
             url: null,
@@ -27,7 +32,8 @@ export default {
             if (event.composedPath()['0'].className == 'popupP') {this.exit()}
         },
         exit() {
-            this.$router.push("/stream/")
+            // this.$router.push("/stream/")
+            this.$emit("exit")
             document.body.style.overflow = "scroll"
             // if (this.prevRoute.path.match(/\/users\/[a-zA-Z]*\/?$/)) {
             //     this.$router.push(this.prevRoute.path)
@@ -52,7 +58,7 @@ export default {
         },
         async getComments() {
             try {
-                var response = await this.$axios.get(`/users/${this.poster}/media/${this.$route.params.photo}/comments/`)
+                var response = await this.$axios.get(`/users/${this.userPoster}/media/${this.photoId}/comments/`)
                 if (response.data) {this.comments = response.data}
                 else {this.comments = []}
             }
@@ -62,14 +68,13 @@ export default {
                     this.badr = true;
                 }
             }
-            this.$emit("postedComment")
         },
         checkPosterAuth() {
             return localStorage.username == this.poster
         },
         async deleteCmnt(cmntId) {
             try {
-                var response = await this.$axios.delete(`/users/${this.poster}/media/${this.$route.params.photo}/comments/${cmntId}/`)
+                var response = await this.$axios.delete(`/users/${this.userPoster}/media/${this.photoId}/comments/${cmntId}/`)
                 var _ = response.data
             }
             catch (e) {
@@ -80,29 +85,61 @@ export default {
             }
             let cs = await this.getComments()
             if (cs) {this.comments=cs}
+        },
+        async init() {
+            this.poster = this.userPoster
+            this.getImage(`/users/${this.userPoster}/media/${this.photoId}/`)
+            await this.getComments()
+            document.body.style.overflow = "hidden"
+            var clss = document.body.getElementsByClassName("swcmt")
+            clss[clss.length-1].style.display = "none"
+            clss = document.body.getElementsByClassName("hgy")
+            clss[clss.length-1].style.display = "none"
         }
     },
     async mounted() {
-        this.poster = this.$route.params.username
-        this.getImage(this.$route.path)
-        await this.getComments()
-        document.body.style.overflow = "hidden"
-        var clss = document.body.getElementsByClassName("swcmt")
-        clss[clss.length-1].style.display = "none"
-        clss = document.body.getElementsByClassName("hgy")
-        clss[clss.length-1].style.display = "none"
+        // this.poster = this.$route.params.username
+        // this.getImage(this.$route.path)
+        // await this.getComments()
+        // document.body.style.overflow = "hidden"
+        // var clss = document.body.getElementsByClassName("swcmt")
+        // clss[clss.length-1].style.display = "none"
+        // clss = document.body.getElementsByClassName("hgy")
+        // clss[clss.length-1].style.display = "none"
 
     },
     components: {
         PageNotFound,
-        FootPost
-    }
+        FootPost,
+        NavBar
+    },
+    watch: {
+        propRoute: {
+            immediate: true,
+            async handler(oldV, newV) {
+                this.init()
+            }
+        },
+        // '$route.params': {
+        //     handler(newValue) {
+        //         var pa = `/users/${newValue.username}/media/${newValue.photo}`
+        //         if (pa.match(/\/users\/[a-zA-Z]*\/media\/[0-9]*\/?$/)) {
+        //             this.$router.push(pa)
+        //         }
+        //     },
+        //     immediate: true,
+        // }
+    },
+    async beforeRouteUpdate(to, from) {
+        // react to route changes...
+        window.location.reload()
+    },
 }
 </script>
 
 <template>
     <div class="popupP" @click="clickOutside">
-        <div class="innerP">
+        <div v-if="!badr" class="innerP">
             <slot />
             <div id="fle">
                 <img id="med" :src="url">
@@ -127,11 +164,11 @@ export default {
                         </div>
                     </div>
                 </div>
-                <FootPost :receivedata="{poster: poster, photo: $route.params.photo}" @postedComment="getComments" @likeAction="likeAct"></FootPost>
+                <FootPost :receivedata="{poster: userPoster, photo: photoId}" @postedComment="getComments" @likeAction="likeAct"></FootPost>
             </div>
-            <div v-if="badr">
-                <PageNotFound></PageNotFound>
-            </div>
+        </div>
+        <div v-else>
+            <PageNotFound></PageNotFound>
         </div>
     </div>
 

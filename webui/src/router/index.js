@@ -3,7 +3,7 @@ import LoginPage from '../views/LoginPage.vue'
 import Stream from '../views/Stream.vue'
 import Profile from '../components/Profile.vue'
 import PageNotFound from '../components/PageNotFound.vue'
-import Image from '../components/image.vue'
+import Media from '../views/media.vue'
 import FlwPopup from '../components/flwPopup.vue'
 
 const router = createRouter({
@@ -11,10 +11,10 @@ const router = createRouter({
 	routes: [
 		{path: '/session', component: LoginPage},
 		{path: '/', component: LoginPage},
-		// {path: '/stream/', component: Stream},
-		{path: '/stream', component: Stream, children: [{path: '/users/:username/media/:photo', component: Image}]},
+		{path: '/stream/', component: Stream},
+		// {path: '/stream', component: Stream, children: [{path: '/users/:username/media/:photo', component: Image, props: route => ({ propRoute: route })}]},
 		{path: '/users/:username', component: Profile, children: [{path: '/users/:username/followers', component: FlwPopup, props: {recv: Object}}, {path: '/users/:username/following', component: FlwPopup, props: {recv: Object}}]},
-		// {path: '/users/:username/media/:photo', component: Image},
+		{path: '/users/:username/media/:photo', component: Media},
 		// {path: '/users/:username/followers', component: FlwPopup},
 		// {path: '/users/:username/following', component: FlwPopup},
 		{path: '/:pathMatch(.*)*', component: PageNotFound},

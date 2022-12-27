@@ -43,6 +43,7 @@ export default {
     watch: {
         '$route.params': {
             handler(newValue) {
+                document.body.style.overflow = "scroll"
                 if (this.$route.path.match(/\/users\/[a-zA-Z]*\/?$/)) {
                     this.getProfile()
                 }

@@ -25,6 +25,7 @@ export default {
         }
     },
     mounted() {
+        document.body.style.overflow = "scroll"
         this.getStream();
     },
 	components: {

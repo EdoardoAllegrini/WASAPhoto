@@ -1,7 +1,7 @@
 <script>
 
 export default {
-    emits: ["postedComment", "likeAction"],
+    emits: ["postedComment", "likeAction", "showPop"],
     props: {
         receivedata: Object,
     },
@@ -109,7 +109,7 @@ export default {
             <div class="hgy" @click="handleLike()">
                 <svg class="svgL kiop"><path :style="stat" ref="lkbtn" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"></path></svg>                            
             </div>
-            <div class="hgy" @click="showComments">
+            <div class="hgy" @click="$emit('showPop')">
                 <svg class="svgL kiop" viewBox="0 0 24 24"><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z"></path></svg>                            
             </div>
         </div>
@@ -129,10 +129,10 @@ export default {
         <form class="cmnty">
             <textarea @input="handleInputCmnt($event)" id="friw" placeholder="Add a comment..." maxlength="250" minlength="1" autocomplete="off" autocapitalize="off" autocorrect="off"></textarea>
             <div class="lakd">
-                <button style="border: none;color: #b3dbff;background-color: white;text-align: center;font-weight: bold;" id="hgtu" @click="postComment($event)">Publish</button>
+                <button type="button" style="border: none;color: #b3dbff;background-color: white;text-align: center;font-weight: bold;" id="hgtu" @click="postComment($event)">Publish</button>
             </div>
         </form>
-        <a class="swcmt" :href="'/#/users/'+receivedata.poster+'/media/'+receivedata.photo+'/'">Show comments</a>
+        <a class="swcmt" @click="$emit('showPop')">Show comments</a>
     </div>
 </template>
 

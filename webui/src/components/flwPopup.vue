@@ -145,7 +145,7 @@ export default {
             <hr>
 
             <div class="people">
-                <div v-for="p in list" class="person">
+                <div v-for="p in list" class="person" :key="p">
                     <a id="name" :href="'/#/users/'+p+'/'">{{p}}</a>
                     <!-- <button v-if="descr=='Following'" class="acsda" :id="descr.toLowerCase()" @click="changeFlw($event)">{{descr}}</button> -->
                     <button v-if="statePerson(p)=='Following'" class="acsda" id="following" @click="unfollow(p)">Following</button>

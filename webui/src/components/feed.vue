@@ -45,7 +45,7 @@ export default {
 <template>
     <div style="display: flex; justify-content: center;">
         <section>
-            <article v-for="a in receivedata">
+            <article v-for="a in receivedata" :key="a.Ph.URL">
                 <div class="article">
                     <div class="head">
                         <p class="poster">{{a.Ph.User}}</p>

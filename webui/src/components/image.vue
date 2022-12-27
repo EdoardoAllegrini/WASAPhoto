@@ -103,7 +103,7 @@ export default {
                     {{ poster }}
                 </div>
                 <div class="cmgts">
-                    <div v-for="c in comments" class="jbcr">
+                    <div v-for="c in comments" class="jbcr" :key="c.id">
                         <div class="ds">
                             <div id="propi">
                                 {{c.user}}

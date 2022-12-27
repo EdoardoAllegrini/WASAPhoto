@@ -51,7 +51,7 @@ export default {
 
 <template>
     <div class="gallery">
-        <div v-for="p in receivedata.photos" class="cont">
+        <div v-for="p in receivedata.photos" class="cont" :key="p.ID">
             <a :href="'/#'+p.URL" class="img">
                 <img :src="images[p.ID]" id="casu">
             </a>

@@ -24,38 +24,6 @@ export default {
 		async refresh() {
 			window.location.reload()
 		},
-        async changeFlw(event) {
-            var user = toRaw(event.composedPath()[1]).querySelector("#name").text
-            if (event.target.id == "following") {
-                try {
-                var path = `/users/${localStorage.username}/following/${user}/`;
-                let response = await this.$axios.delete(path);
-                this.res = response.data;
-                }
-                catch (e) {
-                    console.log(e);
-                    if (e.response.status == 404) {
-                        this.found = false;
-                    }
-                }
-                event.path[0].id = "follow"
-                event.path[0].innerHTML = "Follow"
-            } else if (event.target.id == "follow") {
-                try {
-                    var path = `/users/${localStorage.username}/following/${user}/`;
-                    let response = await this.$axios.put(path, {});
-                    this.res = response.data;
-                }
-                catch (e) {
-                    console.log(e);
-                    if (e.response.status == 404) {
-                        this.found = false;
-                    }
-                }
-                event.path[0].id = "following"
-                event.path[0].innerHTML = "Following"
-            }
-        },
         async follow(person) {
             try {
                 var path = `/users/${localStorage.username}/following/${person}/`;
@@ -84,15 +52,27 @@ export default {
                     this.found = false;
                 }
             }
-            var app = await this.getFollowing()
-            if (app) {this.following=app}
-            else {this.following=[]}
+            this.following = await this.getFollowing(localStorage.username)
             this.$emit("refr")
         },
-        async getFollowing() {
+        async getFollowing(us) {
             try {
-                var response = await this.$axios.get(`/users/${localStorage.username}/following/`)
-                return response.data
+                var response = await this.$axios.get(`/users/${us}/following/`)
+                if (response.data) {return response.data}
+                else {return []}
+            }
+            catch (e) {
+                console.log(e);
+                if (e.response.status == 404) {
+                    this.found = false;
+                }
+            }
+        },
+        async getFollowers(us) {
+            try {
+                var response = await this.$axios.get(`/users/${us}/followers/`)
+                if (response.data) {return response.data}
+                else {return []}
             }
             catch (e) {
                 console.log(e);
@@ -116,9 +96,7 @@ export default {
             this.descr = "Following"
         }
         document.body.style.overflow = "hidden"
-        var app = await this.getFollowing()
-        if (app) {this.following=app}
-        else {this.following=[]}
+        this.following = await this.getFollowing(localStorage.username)
     }
 }
 </script>

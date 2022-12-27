@@ -19,8 +19,8 @@ export default {
             try {
 
                 let response = await this.$axios.get(path);
-                this.sendata = response.data
                 this.badr = false
+                this.sendata = response.data
                 // this.$emit('flw', {followers: this.sendata.followers, following: this.sendata.following})
             }
             catch (e) {
@@ -37,9 +37,9 @@ export default {
             this.found = true
         }
     },
-    mounted() {
-        this.getProfile()
-    },
+    // mounted() {
+    //     this.getProfile()
+    // },
     watch: {
         '$route.params': {
             handler(newValue) {

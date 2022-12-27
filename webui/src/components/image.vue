@@ -10,8 +10,14 @@ export default {
             badr: false,
             poster: "",
             comments: [],
-            likes: []
+            likes: [],
+            prevRoute: null
         }
+    },
+    beforeRouteEnter(to, from, next) {
+        next(vm => {
+            vm.prevRoute = from
+        })
     },
     methods: {
         likeAct() {
@@ -23,6 +29,9 @@ export default {
         exit() {
             this.$router.push("/stream/")
             document.body.style.overflow = "scroll"
+            // if (this.prevRoute.path.match(/\/users\/[a-zA-Z]*\/?$/)) {
+            //     this.$router.push(this.prevRoute.path)
+            // }
             return
         },
         async getImage(path) {

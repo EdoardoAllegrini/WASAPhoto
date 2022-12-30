@@ -2,6 +2,7 @@
 import PostPopup from './postPopup.vue'
 
 export default {
+	emits: ["succPost"],
 	data() {
 		return {
 			profile: "",
@@ -36,7 +37,7 @@ export default {
 			// setTimeout(() => this.menu = false, 2500)
 		},
 		goStream() {
-			this.$router.push(`/stream/`)
+			this.$router.push(`/stream`)
 		},
 		signOut() {
 			localStorage.clear()
@@ -73,7 +74,7 @@ export default {
 
 <template>
 	<header id="hea" class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-		<a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#/">WASAPhoto</a>
+		<a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#/stream">WASAPhoto</a>
 		<div class="sr">
 			<input type="search" placeholder="Search" id="searchIn" spellcheck="false" v-model="profile">
 			<button id="search-button" @click="search">
@@ -83,40 +84,57 @@ export default {
 				</svg>
 			</button>
 		</div>
-		<div class="dh" @click="showMenu">
-			<svg class="svgL"><line x1="3" x2="21" y1="4" y2="4"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="20" y2="20"></line></svg>
-		</div>
-		<div v-if="menu" class="menu">
-			<button id="sout" type="submit" @click="signOut">Sign out</button>
-			<button id="sout" type="submit" @click="us.sh=true">Change username</button>
-			<div class="popup" @click="clickOutside" v-if="us.sh">
-				<div class="inner">
-					<slot />
-					<div class="l-part">
-						<input type="text" v-model="us.usToCh" placeholder="Username" class="input-1" required/>
-						<input type="button" @click="changeUsername" value="Change" class="mybtn" />
-						<div v-if="us.notAv" class="badReq" style="top: 14px;">
-							Username not available
-						</div>					
+
+		<div class="cntr">
+			<div class="dh" @click="showMenu">
+				<svg class="svgL"><line x1="3" x2="21" y1="4" y2="4"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="20" y2="20"></line></svg>
+			</div>
+			<div v-if="menu" class="menu">
+				<button id="sout" type="submit" @click="signOut">Sign out</button>
+				<button id="sout" type="submit" @click="us.sh=true">Change username</button>
+				<div class="popup" @click="clickOutside" v-if="us.sh">
+					<div class="inner">
+						<slot />
+						<div class="l-part">
+							<input type="text" v-model="us.usToCh" placeholder="Username" class="input-1" required/>
+							<input type="button" @click="changeUsername" value="Change" class="mybtn" />
+							<div v-if="us.notAv" class="badReq" style="top: 14px;">
+								Username not available
+							</div>					
+						</div>
 					</div>
 				</div>
-    		</div>
+			</div>
+			<div class="dh" @click="goStream">
+				<svg class="svgL"><path d="M9.005 16.545a2.997 2.997 0 0 1 2.997-2.997A2.997 2.997 0 0 1 15 16.545V22h7V11.543L12 2 2 11.543V22h7.005Z"></path></svg>		
+			</div>
+			<div class="dh" @click="postImage">
+				<svg class="svgL"><path d="M2 12v3.45c0 2.849.698 4.005 1.606 4.944.94.909 2.098 1.608 4.946 1.608h6.896c2.848 0 4.006-.7 4.946-1.608C21.302 19.455 22 18.3 22 15.45V8.552c0-2.849-.698-4.006-1.606-4.945C19.454 2.7 18.296 2 15.448 2H8.552c-2.848 0-4.006.699-4.946 1.607C2.698 4.547 2 5.703 2 8.552Z"></path><line x1="6.545" x2="17.455" y1="12.001" y2="12.001"></line><line x1="12.003" x2="12.003" y1="6.545" y2="17.455"></line></svg>		
+			</div>
+			<div class="dh pro" @click="getMe"></div>
 		</div>
-		
-		<div class="dh" @click="goStream">
-			<svg class="svgL"><path d="M9.005 16.545a2.997 2.997 0 0 1 2.997-2.997A2.997 2.997 0 0 1 15 16.545V22h7V11.543L12 2 2 11.543V22h7.005Z"></path></svg>		
-		</div>
-		<div class="dh" @click="postImage">
-			<svg class="svgL"><path d="M2 12v3.45c0 2.849.698 4.005 1.606 4.944.94.909 2.098 1.608 4.946 1.608h6.896c2.848 0 4.006-.7 4.946-1.608C21.302 19.455 22 18.3 22 15.45V8.552c0-2.849-.698-4.006-1.606-4.945C19.454 2.7 18.296 2 15.448 2H8.552c-2.848 0-4.006.699-4.946 1.607C2.698 4.547 2 5.703 2 8.552Z"></path><line x1="6.545" x2="17.455" y1="12.001" y2="12.001"></line><line x1="12.003" x2="12.003" y1="6.545" y2="17.455"></line></svg>		
-		</div>
-		<div class="dh pro" @click="getMe"></div>
-		<PostPopup v-if="popupPost">
 
-		</PostPopup>
+		<PostPopup v-if="popupPost" @succPost="$emit('succPost')"></PostPopup>
 	</header>
+	<div id="sscp">Photo uploaded succesfully</div>
 </template>
 
 <style>
+#sscp{
+    position: sticky;
+    top: 48px;
+    z-index: 1020;
+	text-align: center;
+	color: green;
+	font-size: larger;
+	background-color: rgb(221,255,221);
+	display: none;
+}
+	.cntr {
+		position: relative;
+		float: right;
+		height: 100%;
+	}
 	.inner {
 		width: 300px;
 		height: 150px;

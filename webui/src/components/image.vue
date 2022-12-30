@@ -1,7 +1,6 @@
 <script>
 import PageNotFound from './PageNotFound.vue'
 import FootPost from './footerPost.vue'
-import NavBar from './NavBar.vue'
 
 export default {
     props: {
@@ -110,8 +109,7 @@ export default {
     },
     components: {
         PageNotFound,
-        FootPost,
-        NavBar
+        FootPost
     },
     watch: {
         propRoute: {

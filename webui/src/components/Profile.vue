@@ -57,7 +57,7 @@ export default {
 </script>
 
 <template>
-    <NavBar></NavBar>
+    <NavBar @succPost="getProfile"></NavBar>
     <div id="allPr" v-if="!badr && !unauth">
         <InfoProfile :receivedata="sendata"></InfoProfile>
         <MediaProfile :receivedata="sendata"></MediaProfile>

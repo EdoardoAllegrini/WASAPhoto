@@ -1,11 +1,12 @@
 <script>
 export default {
+    emits: ["succPost"],
     data() {
         return {
             url: null,
             phSel: false,
             caption: "",
-            image: null
+            image: null,
         }
     },
     methods: {
@@ -32,8 +33,7 @@ export default {
 				let response = await this.$axios.post(path, formData);
 				this.some_data = response.data;
                 this.exit()
-                this.refresh()
-
+                this.succPost()
 			} catch (e) {
                 console.log(e)
 				this.errormsg = e.toString();
@@ -41,7 +41,15 @@ export default {
         },
 		async refresh() {
 			window.location.reload()
-		}
+		},
+        succPost() {
+            document.getElementById("sscp").style.display = "block"
+            setTimeout(function () {            
+                document.getElementById("sscp").style.display = "none"
+                return 1},
+                3000);
+            this.$emit("succPost")
+        }
     }
 }
 </script>
@@ -85,6 +93,7 @@ export default {
 </template>
 
 <style>
+
 #capt {
     position: relative;
     height: 86px;
@@ -136,9 +145,8 @@ input[type="file"] {
     color: black;
 }
 .lopi {
-    position: absolute;
+    position: relative;
     width: inherit;
-    bottom: 142px;
     display: flex;
     justify-content: center;
 }

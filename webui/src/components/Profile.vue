@@ -37,14 +37,15 @@ export default {
             this.found = true
         }
     },
-    // mounted() {
-    //     this.getProfile()
-    // },
+    mounted() {
+        this.getProfile()
+    },
     watch: {
         '$route.params': {
             handler(newValue) {
                 document.body.style.overflow = "scroll"
-                if (this.$route.path.match(/\/users\/.*\/?$/)) {
+                if (this.$route.path.match(/\/users\/[a-zA-Z0-9._]+$/)) {
+                    console.log("gettin profile")
                     this.getProfile()
                 }
             },

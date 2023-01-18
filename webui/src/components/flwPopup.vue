@@ -36,9 +36,7 @@ export default {
                     this.found = false;
                 }
             }
-            var app = await this.getFollowing(localStorage.username)
-            if (app) {this.following=app}
-            else {this.following=[]}
+            this.following = await this.getFollowing(localStorage.username)
             this.$emit("refr")
         },
         async unfollow(person) {

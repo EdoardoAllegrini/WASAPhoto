@@ -36,7 +36,7 @@ export default {
                     this.found = false;
                 }
             }
-            var app = await this.getFollowing()
+            var app = await this.getFollowing(localStorage.username)
             if (app) {this.following=app}
             else {this.following=[]}
             this.$emit("refr")

@@ -12,3 +12,4 @@ docker-compose.log
 /doc/json
 /doc/markdown
 webapi
+readme_backup_img/

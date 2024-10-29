@@ -87,8 +87,11 @@ A user can log in just by specifying the username. See the â€œSimplified loginâ€
 
 ### Some snaps
 [![Screenshot-2023-06-27-at-18-55-38.png](https://i.postimg.cc/9MnQXmgG/Screenshot-2023-06-27-at-18-55-38.png)](https://postimg.cc/342TnTTR)
+---
+<img width="1440" alt="Screenshot-2023-06-27-at-18-56-26" src="https://github.com/user-attachments/assets/018977bc-4ee3-42e5-bf12-51fe81ed4550">
 
-[![Screenshot-2023-06-27-at-18-56-26.png](https://i.postimg.cc/zXyC83vG/Screenshot-2023-06-27-at-18-56-26.png)](https://postimg.cc/LnMYV9jc)
+
+
 
 ### Project structure
 
